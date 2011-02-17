@@ -24,7 +24,8 @@ class AptClone(object):
         for pkg in self.cache:
             if pkg.is_installed:
                 # a version identifies the pacakge
-                f.write("%s %s\n" % (pkg.name, pkg.installed.version))
+                f.write("%s %s %s\n" % (
+                    pkg.name, pkg.installed.version, pkg.is_auto_installed))
                 if not pkg.candidate or not pkg.candidate.downloadable:
                     self.not_downloadable.add(pkg.name)        
                 elif not (pkg.installed.downloadable and
