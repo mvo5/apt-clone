@@ -1,0 +1,4 @@
+* write out version_mismatch.pkg and not_downloadable.pkgs
+* add tests for restore_state
+* refactor restore_state into multiple functions
+* add proper commandline parser

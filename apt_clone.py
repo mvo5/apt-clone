@@ -11,11 +11,17 @@ import tarfile
 import tempfile
 
 class AptClone(object):
-    def __init__(self):
+    def __init__(self, fetch_progress=None, install_progress=None):
         self.not_downloadable = set()
         self.version_mismatch = set()
-        self.fetch_progress =  apt.progress.text.AcquireProgress()
-        self.install_progress = apt.progress.base.InstallProgress()
+        if fetch_progress:
+            self.fetch_progress = fetch_progres
+        else:
+            self.fetch_progress =  apt.progress.text.AcquireProgress()
+        if install_progress:
+            self.install_progress = install_progress
+        else:
+            self.install_progress = apt.progress.base.InstallProgress()
 
     # save
     def save_state(self, targetdir):
