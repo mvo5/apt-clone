@@ -71,7 +71,7 @@ class AptClone(object):
             
         # create new cache
         cache = apt.Cache(rootdir=targetdir)
-        cache.update()
+        cache.update(self.fetch_progress)
         cache.open()
         # reinstall packages
         for line in open(os.path.join(tmp, "installed.pkgs")):
