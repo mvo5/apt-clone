@@ -28,6 +28,7 @@ class AptClone(object):
     def write_state_installed_pkgs(self, targetdir):
         cache = apt.Cache()
         cache.update(self.fetch_progress)
+        cache.open()
         f = open(os.path.join(targetdir, "installed.pkgs"),"w")
         for pkg in cache:
             if pkg.is_installed:
@@ -58,8 +59,8 @@ class AptClone(object):
                         cwd=tmp)
         # copy sources.list into place
         tdir = targetdir+apt_pkg.config.find_dir("Dir::Etc")
-        shutil.rmtree(tdir)
-        os.makedirs(targetdir+apt_pkg.config.find_dir("Dir::Etc"))
+        if not os.path.exists(tdir):
+            os.makedirs(targetdir+apt_pkg.config.find_dir("Dir::Etc"))
         shutil.copy2(
             os.path.join(tmp, "sources.list"),
             targetdir+apt_pkg.config.find_file("Dir::Etc::sourcelist"))
