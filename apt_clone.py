@@ -114,13 +114,19 @@ class AptClone(object):
             save_state() and restore the packages/repositories
             into targetdir (that is usually "/")
         """
-        # unpack state file
-        sourcedir = tempfile.mkdtemp(prefix="apt-clone-")
-        subprocess.call(["tar", "xzf", os.path.abspath(statefile)],
-                        cwd=sourcedir)
+        sourcedir = self._unpack_statefile()
         self._restore_sources_list(sourcedir, targetdir)
         self._restore_package_selection(sourcedir, targetdir)
         self._restore_not_downloadable_debs(sourcedir, targetdir)
+
+    def _unpack_statefile(self, statefile):
+        # unpack state file
+        sourcedir = tempfile.mkdtemp(prefix="apt-clone-")
+        ret = subprocess.call(["tar", "xzf", os.path.abspath(statefile)],
+                              cwd=sourcedir)
+        if ret != 0:
+            return None
+        return sourcedir
 
     def _restore_sources_list(self, sourcedir, targetdir):
         tdir = targetdir+apt_pkg.config.find_dir("Dir::Etc")
@@ -153,6 +159,10 @@ class AptClone(object):
                 cache[name].mark_install(auto_inst=False,
                                          auto_fix=False,
                                          from_user=from_user)
+        # check what is broken and try to fix
+        if cache.broken_count > 0:
+            resolver = apt_pkg.ProblemResolver(cache._depcache)
+            resolver.resolve()
         # do it
         cache.commit(self.fetch_progress, self.install_progress)
 
@@ -162,6 +172,32 @@ class AptClone(object):
             debpath = os.path.join(sourcedir, "debs", deb)
             debs.append(debpath)
         self.commands.install_debs(debs, targetdir)
+
+    # restore on a new distro release
+    def restore_state_on_new_distro_release(self, statefile, new_distro, targetdir):
+        sourcedir = self._unpack_statefile(statefile)
+        self._restore_sources_list(sourcedir, targetdir)
+        self._rewrite_sources_list(targetdir, new_distro)
+        self._restore_package_selection(sourcedir, targetdir)
+        # FIXME: this needs to check if there are conflicts, e.g. via
+        #        gdebi
+        #self._restore_not_downloadable_debs(sourcedir, targetdir)
+
+    def _rewrite_sources_list(self, targetdir, new_distro):
+        from aptsources.sourceslist import SourcesList
+        apt_pkg.config.set(
+            "Dir::Etc::sourcelist",
+            os.path.abspath(os.path.join(targetdir, "etc", "apt", "sources.list")))
+        apt_pkg.config.set(
+            "Dir::Etc::sourceparts",
+            os.path.abspath(os.path.join(targetdir, "etc", "apt", "sources.list.d")))
+        sources = SourcesList()
+        for entry in sources.list[:]:
+            if entry.invalid or entry.disabled:
+                continue
+            entry.dist = new_distro
+        sources.save()
+
 
 if __name__ == "__main__":
 
@@ -180,5 +216,12 @@ if __name__ == "__main__":
             shutil.rmtree("./restore-dir")
         os.mkdir("./restore-dir")
         clone.restore_state(sys.argv[2], "./restore-dir")
-    
+    elif command == "restore-new-distro":
+        if os.path.exists("./restore-dir-new"):
+            shutil.rmtree("./restore-dir-new")
+        os.mkdir("./restore-dir-new")
+        clone.restore_state_on_new_distro_release(sys.argv[2],
+                                                  sys.argv[3],
+                                                  "./restore-dir-new")
+        
         
