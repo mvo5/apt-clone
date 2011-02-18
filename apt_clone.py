@@ -162,6 +162,9 @@ class AptClone(object):
         # check what is broken and try to fix
         if cache.broken_count > 0:
             resolver = apt_pkg.ProblemResolver(cache._depcache)
+            for pkg in cache:
+                if pkg.is_installed:
+                    resolver.protect(pkg._pkg)
             resolver.resolve()
         # do it
         cache.commit(self.fetch_progress, self.install_progress)
