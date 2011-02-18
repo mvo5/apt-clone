@@ -62,6 +62,9 @@ class AptClone(object):
 
     # save
     def save_state(self, targetdir):
+        """ save the current system state (installed pacakges, enabled
+            repositories into the apt-state.tar.gz file in targetdir
+        """
         self._write_state_installed_pkgs(targetdir)
         self._write_state_auto_installed(targetdir)
         self._write_state_sources_list(targetdir)
@@ -107,6 +110,10 @@ class AptClone(object):
 
     # restore
     def restore_state(self, statefile, targetdir="/"):
+        """ take a statefile produced via (like apt-state.tar.gz)
+            save_state() and restore the packages/repositories
+            into targetdir (that is usually "/")
+        """
         # unpack state file
         sourcedir = tempfile.mkdtemp(prefix="apt-clone-")
         subprocess.call(["tar", "xzf", os.path.abspath(statefile)],
