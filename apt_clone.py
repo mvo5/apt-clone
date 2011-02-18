@@ -2,6 +2,7 @@
 
 import apt
 import apt_pkg
+import glob
 import os
 import shutil
 import string
@@ -10,10 +11,44 @@ import sys
 import tarfile
 import tempfile
 
+class LowLevelCommands(object):
+    """ calls to the lowlevel operations to install debs
+        or repack a deb
+    """
+    dpkg_repack = "/usr/bin/dpkg-repack"
+    
+    def install_debs(self, debfiles, targetdir):
+        install_cmd = ["dpkg", "-i"]
+        if targetdir != "/":
+            install_cmd.insert(0, "chroot")
+            install_cmd.insert(1, targetdir)
+        ret = subprocess.call(install_cmd + debfiles)
+        return (ret == 0)
+        
+    def repack_deb(self, pkgname, targetdir):
+        """ dpkg-repack pkgname into targetdir """
+        if not os.path.exists(self.dpkg_repack):
+            raise IOError("no '%s' found" % self.dpkg_repack)
+        repack_cmd = [self.dpkg_repack]
+        if not os.getuid() == 0:
+            if not os.path.exists("/usr/bin/fakeroot"):
+                return
+            repack_cmd.insert(0, "fakeroot")
+        ret = subprocess.call(repack_cmd + [pkgname], cwd=targetdir)
+        return (ret == 0)
+
 class AptClone(object):
+    """ clone the package selection/installation of a existing system
+        using the information that apt provides
+
+        If dpkg-repack is installed, it will be used to generate debs
+        for the obsolete ones.
+    """
+    
     def __init__(self, fetch_progress=None, install_progress=None):
         self.not_downloadable = set()
         self.version_mismatch = set()
+        self.commands = LowLevelCommands()
         if fetch_progress:
             self.fetch_progress = fetch_progres
         else:
@@ -25,15 +60,18 @@ class AptClone(object):
 
     # save
     def save_state(self, targetdir):
-        self.write_state_installed_pkgs(targetdir)
-        self.write_state_auto_installed(targetdir)
-        self.write_state_sources_list(targetdir)
+        self._write_state_installed_pkgs(targetdir)
+        self._write_state_auto_installed(targetdir)
+        self._write_state_sources_list(targetdir)
+        self._dpkg_repack(targetdir)
         shutil.make_archive(
-            os.path.join(targetdir, "apt-state"), "gztar", "./target")
+            os.path.join(targetdir, "apt-state"), "gztar", targetdir)
+        
 
-    def write_state_installed_pkgs(self, targetdir):
+    def _write_state_installed_pkgs(self, targetdir):
         cache = apt.Cache()
-        cache.update(self.fetch_progress)
+        if os.getuid() == 0:
+            cache.update(self.fetch_progress)
         cache.open()
         f = open(os.path.join(targetdir, "installed.pkgs"),"w")
         for pkg in cache:
@@ -48,40 +86,55 @@ class AptClone(object):
                     self.version_mismatch.add(pkg.name)
         f.close()
 
-    def write_state_auto_installed(self, targetdir):
-        shutil.copy(apt_pkg.config.find_file("Dir::State::extended_states"),
-                    os.path.join(targetdir, "extended_states"))
+    def _write_state_auto_installed(self, targetdir):
+        shutil.copy2(apt_pkg.config.find_file("Dir::State::extended_states"),
+                     os.path.join(targetdir, "extended_states"))
 
-    def write_state_sources_list(self, targetdir):
-        shutil.copy(apt_pkg.config.find_file("Dir::Etc::sourcelist"),
+    def _write_state_sources_list(self, targetdir):
+        shutil.copy2(apt_pkg.config.find_file("Dir::Etc::sourcelist"),
                     os.path.join(targetdir, "sources.list"))
         shutil.copytree(apt_pkg.config.find_dir("Dir::Etc::sourceparts"),
                         os.path.join(targetdir, "sources.list.d"))
 
+    def _dpkg_repack(self, targetdir):
+        tdir = os.path.join(targetdir, "debs")
+        if not os.path.exists(tdir):
+            os.makedirs(tdir)
+        for pkgname in self.not_downloadable:
+            self.commands.repack_deb(pkgname, tdir)
+
     # restore
     def restore_state(self, statefile, targetdir):
-        tmp = tempfile.mkdtemp(prefix="apt-clone-")
-        subprocess.call(["tar", "xzvf", os.path.abspath(statefile)],
-                        cwd=tmp)
-        # copy sources.list into place
+        # unpack state file
+        sourcedir = tempfile.mkdtemp(prefix="apt-clone-")
+        subprocess.call(["tar", "xzf", os.path.abspath(statefile)],
+                        cwd=sourcedir)
+        self._restore_sources_list(sourcedir, targetdir)
+        self._restore_package_selection(sourcedir, targetdir)
+        self._restore_not_downloadable_debs(sourcedir, targetdir)
+
+    def _restore_sources_list(self, sourcedir, targetdir):
         tdir = targetdir+apt_pkg.config.find_dir("Dir::Etc")
         if not os.path.exists(tdir):
             os.makedirs(targetdir+apt_pkg.config.find_dir("Dir::Etc"))
         shutil.copy2(
-            os.path.join(tmp, "sources.list"),
+            os.path.join(sourcedir, "sources.list"),
             targetdir+apt_pkg.config.find_file("Dir::Etc::sourcelist"))
         # sources.list.d
         tdir = targetdir+apt_pkg.config.find_dir("Dir::Etc::sourceparts")
-        if os.path.exists(tdir):
-            shutil.rmtree(tdir)
-        shutil.copytree(os.path.join(tmp, "sources.list.d"), tdir)
-            
+        if not os.path.exists(tdir):
+            os.makedirs(tdir)
+        for f in glob.glob(os.path.join(sourcedir, "sources.list.d", "*.list")):
+            shutil.copy2(os.path.join(sourcedir, "sources.list.d", f),
+                         tdir)
+
+    def _restore_package_selection(self, sourcedir, targetdir):
         # create new cache
         cache = apt.Cache(rootdir=targetdir)
         cache.update(self.fetch_progress)
         cache.open()
         # reinstall packages
-        for line in open(os.path.join(tmp, "installed.pkgs")):
+        for line in open(os.path.join(sourcedir, "installed.pkgs")):
             line = line.strip()
             if line.startswith("#") or line == "":
                 continue
@@ -92,6 +145,13 @@ class AptClone(object):
                                          from_user=bool(auto))
         # do it
         cache.commit(self.fetch_progress, self.install_progress)
+
+    def _restore_not_downloadable_debs(self, sourcedir, targetdir):
+        debs = []
+        for deb in glob.glob(os.path.join(sourcedir, "debs", "*.deb")):
+            debpath = os.path.join(sourcedir, "debs", deb)
+            debs.append(debpath)
+        self.commands.install_debs(debs, targetdir)
 
 if __name__ == "__main__":
 
