@@ -104,7 +104,7 @@ class AptClone(object):
             self.commands.repack_deb(pkgname, tdir)
 
     # restore
-    def restore_state(self, statefile, targetdir):
+    def restore_state(self, statefile, targetdir="/"):
         # unpack state file
         sourcedir = tempfile.mkdtemp(prefix="apt-clone-")
         subprocess.call(["tar", "xzf", os.path.abspath(statefile)],
