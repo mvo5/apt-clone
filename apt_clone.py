@@ -18,6 +18,8 @@ class LowLevelCommands(object):
     dpkg_repack = "/usr/bin/dpkg-repack"
     
     def install_debs(self, debfiles, targetdir):
+        if not debfiles:
+            return True
         install_cmd = ["dpkg", "-i"]
         if targetdir != "/":
             install_cmd.insert(0, "chroot")
@@ -66,7 +68,6 @@ class AptClone(object):
         self._dpkg_repack(targetdir)
         shutil.make_archive(
             os.path.join(targetdir, "apt-state"), "gztar", targetdir)
-        
 
     def _write_state_installed_pkgs(self, targetdir):
         cache = apt.Cache()
@@ -77,8 +78,8 @@ class AptClone(object):
         for pkg in cache:
             if pkg.is_installed:
                 # a version identifies the pacakge
-                f.write("%s %s %s\n" % (
-                    pkg.name, pkg.installed.version, pkg.is_auto_installed))
+                f.write("%s %s %s\n" % (pkg.name, pkg.installed.version,
+                                        int(pkg.is_auto_installed)))
                 if not pkg.candidate or not pkg.candidate.downloadable:
                     self.not_downloadable.add(pkg.name)        
                 elif not (pkg.installed.downloadable and
@@ -102,6 +103,7 @@ class AptClone(object):
             os.makedirs(tdir)
         for pkgname in self.not_downloadable:
             self.commands.repack_deb(pkgname, tdir)
+
 
     # restore
     def restore_state(self, statefile, targetdir="/"):
@@ -139,10 +141,11 @@ class AptClone(object):
             if line.startswith("#") or line == "":
                 continue
             (name, version, auto) = line.split()
+            from_user = not int(auto)
             if name in cache:
                 cache[name].mark_install(auto_inst=False,
                                          auto_fix=False,
-                                         from_user=bool(auto))
+                                         from_user=from_user)
         # do it
         cache.commit(self.fetch_progress, self.install_progress)
 
