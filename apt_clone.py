@@ -143,13 +143,10 @@ class AptClone(object):
             shutil.copy2(os.path.join(sourcedir, "sources.list.d", f),
                          tdir)
 
-    def _restore_package_selection(self, sourcedir, targetdir):
-        # create new cache
-        cache = apt.Cache(rootdir=targetdir)
-        cache.update(self.fetch_progress)
-        cache.open()
+    def _restore_package_selection_in_cache(self, sourcedir, cache):
         # reinstall packages
         for line in open(os.path.join(sourcedir, "installed.pkgs")):
+            actiongroup = cache.actiongroup()
             line = line.strip()
             if line.startswith("#") or line == "":
                 continue
@@ -166,6 +163,13 @@ class AptClone(object):
                 if pkg.is_installed:
                     resolver.protect(pkg._pkg)
             resolver.resolve()
+
+    def _restore_package_selection(self, sourcedir, targetdir):
+        # create new cache
+        cache = apt.Cache(rootdir=targetdir)
+        cache.update(self.fetch_progress)
+        cache.open()
+        self._restore_package_selection_in_cache(sourcedir, cache)
         # do it
         cache.commit(self.fetch_progress, self.install_progress)
 

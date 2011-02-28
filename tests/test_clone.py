@@ -9,6 +9,8 @@ import sys
 import tempfile
 import unittest
 
+from StringIO import StringIO
+
 sys.path.insert(0, "..")
 import apt_clone
 from apt_clone import AptClone
@@ -20,7 +22,6 @@ class TestClone(unittest.TestCase):
         apt_pkg.init_config()
         apt_pkg.config.set("Debug::pkgDPkgPM","1")
         apt_pkg.config.clear("DPkg::Post-Invoke")
-        apt_pkg.config.set("APT::Architecture", "i386")
         self.tempdir = tempfile.mkdtemp("apt-clone-tests-")
         os.makedirs(os.path.join(self.tempdir, "var/lib/dpkg/"))
         # ensure we are the right arch
@@ -88,6 +89,25 @@ APT::Architecture "i386";
         self.assertTrue("maverick" in open(sources_list).read())
         self.assertFalse("lucid" in open(sources_list).read())
         
+
+    def test_save_pkgselection_only(self):
+        clone = AptClone()
+        targetdir = os.path.join(self.tempdir, "pkgstates.only")
+        os.makedirs(targetdir)
+        # clone
+        clone._write_state_installed_pkgs(targetdir)
+        self.assertTrue(
+            os.path.exists(os.path.join(targetdir, "installed.pkgs")))
+
+    def test_restore_pkgselection_only(self):
+        cache = apt.Cache()
+        targetdir = self.tempdir
+        open(os.path.join(targetdir, "installed.pkgs"), "w").write("""
+2vcard 0.5-2 0
+""")
+        clone = AptClone()
+        clone._restore_package_selection_in_cache(targetdir, cache)
+        self.assertEqual(len(cache.get_changes()), 1)
 
 if __name__ == "__main__":
     unittest.main()
