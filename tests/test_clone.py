@@ -15,6 +15,11 @@ sys.path.insert(0, "..")
 import apt_clone
 from apt_clone import AptClone
 
+class MockAptCache(apt.Cache):
+    def commit(self, fetchp, installp):
+        pass
+    def update(self, fetchp):
+        pass
 
 class TestClone(unittest.TestCase):
 
@@ -38,7 +43,7 @@ APT::Architecture "i386";
         mock_lowlevel.repack_deb.return_value = True
         targetdir = self.tempdir
         # test
-        clone = AptClone()
+        clone = AptClone(cache_cls=MockAptCache)
         clone.save_state(targetdir)
         self.assertTrue(
             os.path.exists(os.path.join(targetdir, "sources.list")))
@@ -59,9 +64,8 @@ APT::Architecture "i386";
         mock_lowlevel.install_debs.return_value = True
         targetdir = self.tempdir
         # test
-        clone = AptClone()
+        clone = AptClone(cache_cls=MockAptCache)
         clone.restore_state("./tests/data/apt-state.tar.gz", targetdir)
-        self.assertTrue(clone._restore_package_selection.called)
         self.assertTrue(
             os.path.exists(os.path.join(targetdir, "etc","apt","sources.list")))
 
@@ -79,7 +83,7 @@ APT::Architecture "i386";
         shutil.copy("./tests/data/dpkg-status/dpkg-status-ubuntu-maverick",
                     os.path.join(targetdir, "var/lib/dpkg", "status"))
         # test upgrade clone from lucid system to maverick
-        clone = AptClone()
+        clone = AptClone(cache_cls=MockAptCache)
         clone.restore_state_on_new_distro_release_livecd(
             "./tests/data/apt-state-ubuntu-lucid.tar.gz", 
             "maverick",
@@ -91,7 +95,7 @@ APT::Architecture "i386";
         
 
     def test_save_pkgselection_only(self):
-        clone = AptClone()
+        clone = AptClone(cache_cls=MockAptCache)
         targetdir = os.path.join(self.tempdir, "pkgstates.only")
         os.makedirs(targetdir)
         # clone
@@ -100,12 +104,12 @@ APT::Architecture "i386";
             os.path.exists(os.path.join(targetdir, "installed.pkgs")))
 
     def test_restore_pkgselection_only(self):
-        cache = apt.Cache()
+        clone = AptClone(cache_cls=MockAptCache)
         targetdir = self.tempdir
         open(os.path.join(targetdir, "installed.pkgs"), "w").write("""
 2vcard 0.5-2 0
 """)
-        clone = AptClone()
+        cache = apt.Cache()
         clone._restore_package_selection_in_cache(targetdir, cache)
         self.assertEqual(len(cache.get_changes()), 1)
 

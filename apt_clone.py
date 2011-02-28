@@ -47,18 +47,26 @@ class AptClone(object):
         for the obsolete ones.
     """
     
-    def __init__(self, fetch_progress=None, install_progress=None):
+    def __init__(self, fetch_progress=None, install_progress=None,
+                 cache_cls=None):
         self.not_downloadable = set()
         self.version_mismatch = set()
         self.commands = LowLevelCommands()
+        # fetch
         if fetch_progress:
             self.fetch_progress = fetch_progres
         else:
             self.fetch_progress =  apt.progress.text.AcquireProgress()
+        # install
         if install_progress:
             self.install_progress = install_progress
         else:
             self.install_progress = apt.progress.base.InstallProgress()
+        # cache class (e.g. apt.Cache)
+        if cache_cls:
+            self._cache_cls = cache_cls
+        else:
+            self._cache_cls = apt.Cache
 
     # save
     def save_state(self, targetdir):
@@ -73,7 +81,7 @@ class AptClone(object):
             os.path.join(targetdir, "apt-state"), "gztar", targetdir)
 
     def _write_state_installed_pkgs(self, targetdir):
-        cache = apt.Cache()
+        cache = self._cache_cls()
         if os.getuid() == 0:
             cache.update(self.fetch_progress)
         cache.open()
@@ -166,7 +174,7 @@ class AptClone(object):
 
     def _restore_package_selection(self, sourcedir, targetdir):
         # create new cache
-        cache = apt.Cache(rootdir=targetdir)
+        cache = self._cache_cls(rootdir=targetdir)
         cache.update(self.fetch_progress)
         cache.open()
         self._restore_package_selection_in_cache(sourcedir, cache)
