@@ -177,7 +177,8 @@ class AptClone(object):
         self.commands.install_debs(debs, targetdir)
 
     # restore on a new distro release
-    def restore_state_on_new_distro_release(self, statefile, new_distro, targetdir):
+    def restore_state_on_new_distro_release_livecd(self, statefile, new_distro, 
+                                                   targetdir):
         sourcedir = self._unpack_statefile(statefile)
         self._restore_sources_list(sourcedir, targetdir)
         self._rewrite_sources_list(targetdir, new_distro)

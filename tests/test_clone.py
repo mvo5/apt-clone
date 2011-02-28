@@ -21,12 +21,21 @@ class TestClone(unittest.TestCase):
         apt_pkg.config.set("Debug::pkgDPkgPM","1")
         apt_pkg.config.clear("DPkg::Post-Invoke")
         apt_pkg.config.set("APT::Architecture", "i386")
-    
+        self.tempdir = tempfile.mkdtemp("apt-clone-tests-")
+        os.makedirs(os.path.join(self.tempdir, "var/lib/dpkg/"))
+        # ensure we are the right arch
+        os.makedirs(os.path.join(self.tempdir, "etc/apt"))
+        open(os.path.join(self.tempdir, "etc/apt/apt.conf"), "w").write('''
+APT::Architecture "i386";
+#clear Dpkg::Post-Invoke;
+#clear Dpkg::Pre-Invoke;
+''')
+
     @mock.patch("apt_clone.LowLevelCommands")
     def test_save_state(self, mock_lowlevel):
         # setup mock
         mock_lowlevel.repack_deb.return_value = True
-        targetdir = tempfile.mkdtemp("apt-clone-tests-")
+        targetdir = self.tempdir
         # test
         clone = AptClone()
         clone.save_state(targetdir)
@@ -47,7 +56,7 @@ class TestClone(unittest.TestCase):
     def test_restore_state(self, mock_lowlevel):
         # setup mock
         mock_lowlevel.install_debs.return_value = True
-        targetdir = tempfile.mkdtemp("apt-clone-tests-restore-")
+        targetdir = self.tempdir
         # test
         clone = AptClone()
         clone.restore_state("./tests/data/apt-state.tar.gz", targetdir)
@@ -56,23 +65,21 @@ class TestClone(unittest.TestCase):
             os.path.exists(os.path.join(targetdir, "etc","apt","sources.list")))
 
     @mock.patch("apt_clone.LowLevelCommands")
-    def test_restore_state_on_new_distro_release(self, mock_lowlevel):
-        """ test lucid -> maverick apt-clone-ugprade """
+    def test_restore_state_on_new_distro_release_livecd(self, mock_lowlevel):
+        """ 
+        test lucid -> maverick apt-clone-ugprade as if it will be used
+        from a live cd based upgrader
+        """
         # setup mock for dpkg -i
         mock_lowlevel.install_debs.return_value = True
         # create target dir
-        targetdir = tempfile.mkdtemp("apt-clone-tests-restore-")
-        os.makedirs(os.path.join(targetdir, "var/lib/dpkg/"))
+        targetdir = self.tempdir
         # status file from maverick (to simulate running on a maverick live-cd)
         shutil.copy("./tests/data/dpkg-status/dpkg-status-ubuntu-maverick",
                     os.path.join(targetdir, "var/lib/dpkg", "status"))
-        # ensure we are the right arch
-        os.makedirs(os.path.join(targetdir, "etc/apt"))
-        open(os.path.join(targetdir, "etc/apt/apt.conf"), "w").write(
-            'APT::Architecture "i386";')
         # test upgrade clone from lucid system to maverick
         clone = AptClone()
-        clone.restore_state_on_new_distro_release(
+        clone.restore_state_on_new_distro_release_livecd(
             "./tests/data/apt-state-ubuntu-lucid.tar.gz", 
             "maverick",
             targetdir)
