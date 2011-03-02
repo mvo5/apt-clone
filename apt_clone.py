@@ -5,10 +5,8 @@ import apt_pkg
 import glob
 import os
 import shutil
-import string
 import subprocess
 import sys
-import tarfile
 import tempfile
 
 class LowLevelCommands(object):
@@ -54,7 +52,7 @@ class AptClone(object):
         self.commands = LowLevelCommands()
         # fetch
         if fetch_progress:
-            self.fetch_progress = fetch_progres
+            self.fetch_progress = fetch_progress
         else:
             self.fetch_progress =  apt.progress.text.AcquireProgress()
         # install
@@ -69,19 +67,27 @@ class AptClone(object):
             self._cache_cls = apt.Cache
 
     # save
-    def save_state(self, targetdir):
+    def save_state(self, sourcedir, targetdir):
         """ save the current system state (installed pacakges, enabled
             repositories into the apt-state.tar.gz file in targetdir
         """
-        self._write_state_installed_pkgs(targetdir)
+
+        if sourcedir != '/':
+            apt_pkg.init_config()
+            apt_pkg.config.set("Dir", sourcedir)
+            apt_pkg.config.set("Dir::State::status",
+                               os.path.join(sourcedir, 'var/lib/dpkg/status'))
+            apt_pkg.init_system()
+
+        self._write_state_installed_pkgs(sourcedir, targetdir)
         self._write_state_auto_installed(targetdir)
         self._write_state_sources_list(targetdir)
         self._dpkg_repack(targetdir)
         shutil.make_archive(
             os.path.join(targetdir, "apt-state"), "gztar", targetdir)
 
-    def _write_state_installed_pkgs(self, targetdir):
-        cache = self._cache_cls()
+    def _write_state_installed_pkgs(self, sourcedir, targetdir):
+        cache = self._cache_cls(rootdir=sourcedir)
         if os.getuid() == 0:
             cache.update(self.fetch_progress)
         cache.open()
@@ -99,14 +105,18 @@ class AptClone(object):
         f.close()
 
     def _write_state_auto_installed(self, targetdir):
-        shutil.copy2(apt_pkg.config.find_file("Dir::State::extended_states"),
-                     os.path.join(targetdir, "extended_states"))
+        extended_states = apt_pkg.config.find_file("Dir::State::extended_states")
+        if os.path.exists(extended_states):
+            shutil.copy2(extended_states,
+                         os.path.join(targetdir, "extended_states"))
 
     def _write_state_sources_list(self, targetdir):
         shutil.copy2(apt_pkg.config.find_file("Dir::Etc::sourcelist"),
                     os.path.join(targetdir, "sources.list"))
-        shutil.copytree(apt_pkg.config.find_dir("Dir::Etc::sourceparts"),
-                        os.path.join(targetdir, "sources.list.d"))
+        source_parts = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
+        if os.path.exists(source_parts):
+            shutil.copytree(source_parts,
+                            os.path.join(targetdir, "sources.list.d"))
 
     def _dpkg_repack(self, targetdir):
         tdir = os.path.join(targetdir, "debs")
@@ -219,25 +229,30 @@ if __name__ == "__main__":
 
     clone = AptClone()
 
+    if len(sys.argv) < 2:
+        print >>sys.stderr, 'Need a command: clone, restore, restore-new-distro'
+        sys.exit(1)
     command = sys.argv[1]
     if command == "clone":
-        if os.path.exists("./clone-dir"):
-            shutil.rmtree("./clone-dir")
-        os.mkdir("./clone-dir")
-        clone.save_state("./clone-dir")
+        if len(sys.argv) < 4:
+            print >>sys.stderr, 'Usage: %s clone <from> <to>' % sys.argv[0]
+            sys.exit(1)
+        if os.path.exists(sys.argv[3]):
+            shutil.rmtree(sys.argv[3])
+        os.mkdir(sys.argv[3])
+        clone.save_state(sys.argv[2], sys.argv[3])
         print "not installable: %s" % ", ".join(clone.not_downloadable)
         print "version mismatch: %s" % ", ".join(clone.version_mismatch)
     elif command == "restore":
-        if os.path.exists("./restore-dir"):
-            shutil.rmtree("./restore-dir")
-        os.mkdir("./restore-dir")
-        clone.restore_state(sys.argv[2], "./restore-dir")
+        if len(sys.argv) < 4:
+            print >>sys.stderr, 'Usage: %s restore <from> <to>' % sys.argv[0]
+            sys.exit(1)
+        clone.restore_state(sys.argv[2], sys.argv[3])
     elif command == "restore-new-distro":
-        if os.path.exists("./restore-dir-new"):
-            shutil.rmtree("./restore-dir-new")
-        os.mkdir("./restore-dir-new")
-        clone.restore_state_on_new_distro_release(sys.argv[2],
-                                                  sys.argv[3],
-                                                  "./restore-dir-new")
-        
+        if len(sys.argv) < 5:
+            print >>sys.stderr, 'Usage: %s restore-new-distro <statefile> <new_distro> <targetdir>' % sys.argv[0]
+            sys.exit(1)
+        clone.restore_state_on_new_distro_release_livecd(sys.argv[2],
+                                                         sys.argv[3],
+                                                         sys.argv[4])
         

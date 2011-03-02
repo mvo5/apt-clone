@@ -44,7 +44,8 @@ APT::Architecture "i386";
         targetdir = self.tempdir
         # test
         clone = AptClone(cache_cls=MockAptCache)
-        clone.save_state(targetdir)
+        sourcedir = "/"
+        clone.save_state(sourcedir, targetdir)
         self.assertTrue(
             os.path.exists(os.path.join(targetdir, "sources.list")))
         self.assertTrue(
@@ -99,7 +100,8 @@ APT::Architecture "i386";
         targetdir = os.path.join(self.tempdir, "pkgstates.only")
         os.makedirs(targetdir)
         # clone
-        clone._write_state_installed_pkgs(targetdir)
+        sourcedir="/"
+        clone._write_state_installed_pkgs(sourcedir, targetdir)
         self.assertTrue(
             os.path.exists(os.path.join(targetdir, "installed.pkgs")))
 
