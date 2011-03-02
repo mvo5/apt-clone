@@ -1,7 +1,11 @@
 #!/usr/bin/python
 
+
 import apt
 import apt_pkg
+# default in py2.7
+import argparse
+import logging
 import glob
 import os
 import shutil
@@ -227,32 +231,52 @@ class AptClone(object):
 
 if __name__ == "__main__":
 
-    clone = AptClone()
+    # command line parser
+    parser = argparse.ArgumentParser(description="Clone/restore package info")
+    parser.add_argument("--debug", action="store_true", default=False,
+                        help="enable debug output")
+    subparser = parser.add_subparsers(title="Commands")
+    # clone
+    command = subparser.add_parser(
+        "clone", 
+        help="create a clone-file from <source> (usually '/') to <destination>")
+    command.add_argument("source")
+    command.add_argument("destination")
+    command.set_defaults(command="clone")
+    # restore
+    command = subparser.add_parser(
+        "restore",
+        help="restore a clone file from <source> to <destination> (usually '/')")
+    command.add_argument("source")
+    command.add_argument("destination")
+    command.set_defaults(command="restore")
+    # restore distro
+    command = subparser.add_parser(
+        "restore-new-distro",
+        help="restore a clone file from <source> to <destination> and try "\
+             "upgrading along the way")
+    command.add_argument("source")
+    command.add_argument("new_distro_codename")
+    command.add_argument("destination")
+    command.set_defaults(command="restore-new-distro")
 
-    if len(sys.argv) < 2:
-        print >>sys.stderr, 'Need a command: clone, restore, restore-new-distro'
-        sys.exit(1)
-    command = sys.argv[1]
-    if command == "clone":
-        if len(sys.argv) < 4:
-            print >>sys.stderr, 'Usage: %s clone <from> <to>' % sys.argv[0]
-            sys.exit(1)
-        if os.path.exists(sys.argv[3]):
-            shutil.rmtree(sys.argv[3])
-        os.mkdir(sys.argv[3])
-        clone.save_state(sys.argv[2], sys.argv[3])
+    args = parser.parse_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+
+    # do the actual work
+    clone = AptClone()
+    if args.command == "clone":
+        if os.path.exists(args.destination):
+            shutil.rmtree(args.destination)
+        os.mkdir(args.destination)
+        clone.save_state(args.source, args.destination)
         print "not installable: %s" % ", ".join(clone.not_downloadable)
         print "version mismatch: %s" % ", ".join(clone.version_mismatch)
-    elif command == "restore":
-        if len(sys.argv) < 4:
-            print >>sys.stderr, 'Usage: %s restore <from> <to>' % sys.argv[0]
-            sys.exit(1)
-        clone.restore_state(sys.argv[2], sys.argv[3])
-    elif command == "restore-new-distro":
-        if len(sys.argv) < 5:
-            print >>sys.stderr, 'Usage: %s restore-new-distro <statefile> <new_distro> <targetdir>' % sys.argv[0]
-            sys.exit(1)
-        clone.restore_state_on_new_distro_release_livecd(sys.argv[2],
-                                                         sys.argv[3],
-                                                         sys.argv[4])
+    elif args.command == "restore":
+        clone.restore_state(args.source, args.destination)
+    elif args.command == "restore-new-distro":
+        clone.restore_state_on_new_distro_release_livecd(
+            args.source, args.new_distro_codename, args.destination)
         
