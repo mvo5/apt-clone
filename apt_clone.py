@@ -136,6 +136,8 @@ class AptClone(object):
             save_state() and restore the packages/repositories
             into targetdir (that is usually "/")
         """
+        if targetdir != "/":
+            apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
         sourcedir = self._unpack_statefile(statefile)
         self._restore_sources_list(sourcedir, targetdir)
         self._restore_package_selection(sourcedir, targetdir)
