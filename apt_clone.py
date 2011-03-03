@@ -207,6 +207,8 @@ class AptClone(object):
     # restore on a new distro release
     def restore_state_on_new_distro_release_livecd(self, statefile, new_distro, 
                                                    targetdir):
+        if targetdir != "/":
+            apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
         sourcedir = self._unpack_statefile(statefile)
         self._restore_sources_list(sourcedir, targetdir)
         self._rewrite_sources_list(targetdir, new_distro)
