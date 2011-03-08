@@ -207,11 +207,12 @@ class AptClone(object):
                 continue
             (name, version, auto) = line.split()
             pkgs.add(name)
-            from_user = not int(auto)
+            auto_installed = int(auto)
+            from_user = not auto_installed
             if name in cache:
-                cache[name].mark_install(auto_inst=False,
-                                         auto_fix=False,
-                                         from_user=from_user)
+                cache[name].mark_install(from_user=from_user)
+                # ensure the auto install info is 
+                cache[name].mark_auto(auto_installed)
         # check what is broken and try to fix
         if cache.broken_count > 0:
             resolver = apt_pkg.ProblemResolver(cache._depcache)
