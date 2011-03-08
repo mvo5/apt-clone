@@ -13,6 +13,9 @@ import subprocess
 import sys
 import tempfile
 
+if "APT_CLONE_DEBUG_RESOLVER" in os.environ:
+    apt_pkg.config.set("Debug::pkgProblemResolver", "1")
+
 class LowLevelCommands(object):
     """ calls to the lowlevel operations to install debs
         or repack a deb
