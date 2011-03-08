@@ -132,7 +132,7 @@ class AptClone(object):
 
 
     # restore
-    def restore_state(self, statefile, targetdir="/"):
+    def restore_state(self, statefile, targetdir="/", new_distro=None):
         """ take a statefile produced via (like apt-state.tar.gz)
             save_state() and restore the packages/repositories
             into targetdir (that is usually "/")
@@ -141,8 +141,34 @@ class AptClone(object):
             apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
         sourcedir = self._unpack_statefile(statefile)
         self._restore_sources_list(sourcedir, targetdir)
+        if new_distro:
+            self._rewrite_sources_list(targetdir, new_distro)
         self._restore_package_selection(sourcedir, targetdir)
+        # FIXME: this needs to check if there are conflicts, e.g. via
+        #        gdebi
         self._restore_not_downloadable_debs(sourcedir, targetdir)
+
+    # simulate restore and return list of missing pkgs
+    def simulate_restore_state(self, statefile, new_distro=None):
+        # create tmp target (with host system dpkg-status) to simulate in
+        target = tempfile.mkdtemp()
+        dpkg_status = apt_pkg.config.find_file("dir::state::status")
+        if not os.path.exists(target+os.path.dirname(dpkg_status)):
+            os.makedirs(target+os.path.dirname(dpkg_status))
+        shutil.copy(dpkg_status, target+dpkg_status)
+        # unpack source
+        sourcedir = self._unpack_statefile(statefile)
+        # restore sources.list and update cache in tmp target
+        self._restore_sources_list(sourcedir, target)
+        # optionally rewrite on new distro
+        if new_distro:
+            self._rewrite_sources_list(target, new_distro)
+        cache = self._cache_cls(rootdir=target)
+        cache.update(apt.progress.base.AcquireProgress())
+        cache.open()
+        # try to replay cache and see thats missing
+        missing = self._restore_package_selection_in_cache(sourcedir, cache)
+        return missing
 
     def _unpack_statefile(self, statefile):
         # unpack state file
@@ -170,12 +196,14 @@ class AptClone(object):
 
     def _restore_package_selection_in_cache(self, sourcedir, cache):
         # reinstall packages
+        pkgs = set()
         for line in open(os.path.join(sourcedir, "installed.pkgs")):
             actiongroup = cache.actiongroup()
             line = line.strip()
             if line.startswith("#") or line == "":
                 continue
             (name, version, auto) = line.split()
+            pkgs.add(name)
             from_user = not int(auto)
             if name in cache:
                 cache[name].mark_install(auto_inst=False,
@@ -188,6 +216,15 @@ class AptClone(object):
                 if pkg.is_installed:
                     resolver.protect(pkg._pkg)
             resolver.resolve()
+        # now go over and see what is missing
+        missing = set()
+        for pkg in pkgs:
+            if not pkg in cache:
+                missing.add(pkg)
+                continue
+            if not (cache[pkg].is_installed or cache[pkg].marked_install):
+                missing.add(pkg)
+        return missing
 
     def _restore_package_selection(self, sourcedir, targetdir):
         # create new cache
@@ -204,19 +241,6 @@ class AptClone(object):
             debpath = os.path.join(sourcedir, "debs", deb)
             debs.append(debpath)
         self.commands.install_debs(debs, targetdir)
-
-    # restore on a new distro release
-    def restore_state_on_new_distro_release_livecd(self, statefile, new_distro, 
-                                                   targetdir):
-        if targetdir != "/":
-            apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
-        sourcedir = self._unpack_statefile(statefile)
-        self._restore_sources_list(sourcedir, targetdir)
-        self._rewrite_sources_list(targetdir, new_distro)
-        self._restore_package_selection(sourcedir, targetdir)
-        # FIXME: this needs to check if there are conflicts, e.g. via
-        #        gdebi
-        #self._restore_not_downloadable_debs(sourcedir, targetdir)
 
     def _rewrite_sources_list(self, targetdir, new_distro):
         from aptsources.sourceslist import SourcesList
@@ -257,6 +281,7 @@ if __name__ == "__main__":
         help="restore a clone file from <source> to <destination> (usually '/')")
     command.add_argument("source")
     command.add_argument("destination")
+    command.add_argument("--simulate", action="store_true", default=False)
     command.set_defaults(command="restore")
     # restore on new distro
     command = subparser.add_parser(
@@ -266,6 +291,7 @@ if __name__ == "__main__":
     command.add_argument("source")
     command.add_argument("new_distro_codename")
     command.add_argument("destination")
+    command.add_argument("--simulate", action="store_true", default=False)
     command.set_defaults(command="restore-new-distro")
 
     # parse
@@ -284,8 +310,17 @@ if __name__ == "__main__":
         print "not installable: %s" % ", ".join(clone.not_downloadable)
         print "version mismatch: %s" % ", ".join(clone.version_mismatch)
     elif args.command == "restore":
-        clone.restore_state(args.source, args.destination)
+        if args.simulate:
+            miss = clone.simulate_restore_state(args.source)
+            print "missing: %s" % ",".join(sorted(list(miss)))
+        else:
+            clone.restore_state(args.source, args.destination)
     elif args.command == "restore-new-distro":
-        clone.restore_state_on_new_distro_release_livecd(
-            args.source, args.new_distro_codename, args.destination)
+        if args.simulate:
+            miss = clone.simulate_restore_state(
+                args.source, args.new_distro_codename)
+            print "missing: %s" % ",".join(sorted(list(miss)))
+        else:
+            clone.restore_state(
+                args.source, args.destination, args.new_distro_codename)
         

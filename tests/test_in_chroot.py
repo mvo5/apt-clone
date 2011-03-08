@@ -33,8 +33,8 @@ class TestClone(unittest.TestCase):
             'APT::Architecture "i386";')
         # restore
         clone = AptClone()
-        clone.restore_state_on_new_distro_release_livecd(
-            "./tests/data/apt-state_chroot_with_vim.tar.gz", "maverick", target)
+        clone.restore_state(
+            "./tests/data/apt-state_chroot_with_vim.tar.gz", target, "maverick")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

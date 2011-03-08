@@ -91,10 +91,10 @@ APT::Architecture "i386";
                     os.path.join(targetdir, "var/lib/dpkg", "status"))
         # test upgrade clone from lucid system to maverick
         clone = AptClone(cache_cls=MockAptCache)
-        clone.restore_state_on_new_distro_release_livecd(
+        clone.restore_state(
             "./tests/data/apt-state-ubuntu-lucid.tar.gz", 
-            "maverick",
-            targetdir)
+            targetdir,
+            "maverick")
         sources_list = os.path.join(targetdir, "etc","apt","sources.list")
         self.assertTrue(os.path.exists(sources_list))
         self.assertTrue("maverick" in open(sources_list).read())
@@ -121,6 +121,20 @@ libnet1 1.1.2-1 1
         cache = apt.Cache()
         clone._restore_package_selection_in_cache(targetdir, cache)
         self.assertEqual(len(cache.get_changes()), 2)
+
+    def test_restore_state_simulate(self):
+        clone = AptClone()
+        missing = clone.simulate_restore_state("./tests/data/apt-state.tar.gz")
+        # missing, because clone does not have universe enabled
+        self.assertEqual(list(missing), ["accerciser"])
+
+    def test_restore_state_simulate_with_new_release(self):
+        #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
+        clone = AptClone()
+        missing = clone.simulate_restore_state(
+            "./tests/data/apt-state-ubuntu-lucid.tar.gz", "maverick") 
+        # FIXME: check that the stuff in missing is ok
+        #print missing
 
 if __name__ == "__main__":
     unittest.main()
