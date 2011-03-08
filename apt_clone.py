@@ -273,7 +273,7 @@ if __name__ == "__main__":
     command = subparser.add_parser(
         "clone", 
         help="create a clone-file from <source> (usually '/') to <destination>")
-    command.add_argument("source")
+    command.add_argument("--source", default="/")
     command.add_argument("destination")
     command.add_argument("--with-dpkg-repack", 
                          action="store_true", default=False,
@@ -284,7 +284,7 @@ if __name__ == "__main__":
         "restore",
         help="restore a clone file from <source> to <destination> (usually '/')")
     command.add_argument("source")
-    command.add_argument("destination")
+    command.add_argument("--destination", default="/")
     command.add_argument("--simulate", action="store_true", default=False)
     command.set_defaults(command="restore")
     # restore on new distro
@@ -294,7 +294,7 @@ if __name__ == "__main__":
              "upgrading along the way")
     command.add_argument("source")
     command.add_argument("new_distro_codename")
-    command.add_argument("destination")
+    command.add_argument("--destination", default="/")
     command.add_argument("--simulate", action="store_true", default=False)
     command.set_defaults(command="restore-new-distro")
 
