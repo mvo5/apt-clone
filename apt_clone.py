@@ -71,7 +71,7 @@ class AptClone(object):
             self._cache_cls = apt.Cache
 
     # save
-    def save_state(self, sourcedir, targetdir):
+    def save_state(self, sourcedir, targetdir, with_dpkg_repack=False):
         """ save the current system state (installed pacakges, enabled
             repositories into the apt-state.tar.gz file in targetdir
         """
@@ -86,7 +86,8 @@ class AptClone(object):
         self._write_state_installed_pkgs(sourcedir, targetdir)
         self._write_state_auto_installed(targetdir)
         self._write_state_sources_list(targetdir)
-        self._dpkg_repack(targetdir)
+        if with_dpkg_repack:
+            self._dpkg_repack(targetdir)
         shutil.make_archive(
             os.path.join(targetdir, "apt-state"), "gztar", targetdir)
 
@@ -246,6 +247,9 @@ if __name__ == "__main__":
         help="create a clone-file from <source> (usually '/') to <destination>")
     command.add_argument("source")
     command.add_argument("destination")
+    command.add_argument("--with-dpkg-repack", 
+                         action="store_true", default=False,
+                         help="add no longer downloadable package to the state bundle (that can make it rather big)")
     command.set_defaults(command="clone")
     # restore
     command = subparser.add_parser(
@@ -254,7 +258,7 @@ if __name__ == "__main__":
     command.add_argument("source")
     command.add_argument("destination")
     command.set_defaults(command="restore")
-    # restore distro
+    # restore on new distro
     command = subparser.add_parser(
         "restore-new-distro",
         help="restore a clone file from <source> to <destination> and try "\
@@ -264,6 +268,7 @@ if __name__ == "__main__":
     command.add_argument("destination")
     command.set_defaults(command="restore-new-distro")
 
+    # parse
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -275,7 +280,7 @@ if __name__ == "__main__":
         if os.path.exists(args.destination):
             shutil.rmtree(args.destination)
         os.mkdir(args.destination)
-        clone.save_state(args.source, args.destination)
+        clone.save_state(args.source, args.destination, args.with_dpkg_repack)
         print "not installable: %s" % ", ".join(clone.not_downloadable)
         print "version mismatch: %s" % ", ".join(clone.version_mismatch)
     elif args.command == "restore":

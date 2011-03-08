@@ -39,13 +39,19 @@ APT::Architecture "i386";
 
     @mock.patch("apt_clone.LowLevelCommands")
     def test_save_state(self, mock_lowlevel):
+        self._save_state(False)
+
+    @mock.patch("apt_clone.LowLevelCommands")
+    def test_save_state_with_dpkg_repack(self, mock_lowlevel):
+        self._save_state(True)
+
+    def _save_state(self, with_dpkg_repack):
         # setup mock
-        mock_lowlevel.repack_deb.return_value = True
         targetdir = self.tempdir
         # test
         clone = AptClone(cache_cls=MockAptCache)
         sourcedir = "/"
-        clone.save_state(sourcedir, targetdir)
+        clone.save_state(sourcedir, targetdir, with_dpkg_repack)
         self.assertTrue(
             os.path.exists(os.path.join(targetdir, "sources.list")))
         self.assertTrue(
@@ -57,7 +63,7 @@ APT::Architecture "i386";
         self.assertTrue(
             os.path.exists(os.path.join(targetdir, "apt-state.tar.gz")))
         if clone.not_downloadable:
-            self.assertTrue(clone.commands.repack_deb.called)
+            self.assertEqual(clone.commands.repack_deb.called, with_dpkg_repack)
 
     @mock.patch("apt_clone.LowLevelCommands")
     def test_restore_state(self, mock_lowlevel):
@@ -109,11 +115,12 @@ APT::Architecture "i386";
         clone = AptClone(cache_cls=MockAptCache)
         targetdir = self.tempdir
         open(os.path.join(targetdir, "installed.pkgs"), "w").write("""
-2vcard 0.5-2 0
+4g8 1.0-3 0
+libnet1 1.1.2-1 1
 """)
         cache = apt.Cache()
         clone._restore_package_selection_in_cache(targetdir, cache)
-        self.assertEqual(len(cache.get_changes()), 1)
+        self.assertEqual(len(cache.get_changes()), 2)
 
 if __name__ == "__main__":
     unittest.main()
