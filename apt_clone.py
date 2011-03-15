@@ -89,7 +89,7 @@ class AptClone(object):
             target = os.path.join(target, self.CLONE_FILENAME)
         else:
             targetdir = os.path.dirname(target)
-            if not target.endswith(".apt-clone.tar.gz"):
+            if not target.endswith(".tar.gz"):
                 target += ".apt-clone.tar.gz"
 
         if sourcedir != '/':
