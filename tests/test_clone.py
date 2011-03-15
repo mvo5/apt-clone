@@ -53,7 +53,7 @@ class TestClone(unittest.TestCase):
         targetdir = self.tempdir
         # test
         clone = AptClone(cache_cls=MockAptCache)
-        sourcedir = "./tests/data/mock-system"
+        sourcedir = "./data/mock-system"
         clone.save_state(sourcedir, targetdir, with_dpkg_repack)
         # verify that we got the tarfile
         tarname = os.path.join(targetdir, clone.CLONE_FILENAME)
@@ -80,7 +80,7 @@ class TestClone(unittest.TestCase):
         # test
         clone = AptClone(cache_cls=MockAptCache)
         clone.restore_state(
-            "./tests/data/apt-state_chroot_with_vim.tar.gz", targetdir)
+            "./data/apt-state_chroot_with_vim.tar.gz", targetdir)
         self.assertTrue(
             os.path.exists(os.path.join(targetdir, "etc","apt","sources.list")))
 
@@ -95,7 +95,7 @@ class TestClone(unittest.TestCase):
         # create target dir
         targetdir = self.tempdir
         # status file from maverick (to simulate running on a maverick live-cd)
-        s=open("./tests/data/dpkg-status/dpkg-status-ubuntu-maverick").read()
+        s=open("./data/dpkg-status/dpkg-status-ubuntu-maverick").read()
         s = s.replace(
             "Architecture: i386",
             "Architecture: %s" % apt_pkg.config.find("Apt::Architecture"))
@@ -103,7 +103,7 @@ class TestClone(unittest.TestCase):
         # test upgrade clone from lucid system to maverick
         clone = AptClone(cache_cls=MockAptCache)
         clone.restore_state(
-            "./tests/data/apt-state-ubuntu-lucid.tar.gz", 
+            "./data/apt-state-ubuntu-lucid.tar.gz", 
             targetdir,
             "maverick")
         sources_list = os.path.join(targetdir, "etc","apt","sources.list")
@@ -113,7 +113,7 @@ class TestClone(unittest.TestCase):
         
     def test_restore_state_simulate(self):
         clone = AptClone()
-        missing = clone.simulate_restore_state("./tests/data/apt-state.tar.gz")
+        missing = clone.simulate_restore_state("./data/apt-state.tar.gz")
         # missing, because clone does not have universe enabled
         self.assertEqual(list(missing), ["accerciser"])
 
@@ -121,10 +121,10 @@ class TestClone(unittest.TestCase):
         #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
         apt_pkg.config.set(
             "Dir::state::status", 
-            "./tests/data/dpkg-status/dpkg-status-ubuntu-maverick")
+            "./data/dpkg-status/dpkg-status-ubuntu-maverick")
         clone = AptClone()
         missing = clone.simulate_restore_state(
-            "./tests/data/apt-state-ubuntu-lucid.tar.gz", "maverick") 
+            "./data/apt-state-ubuntu-lucid.tar.gz", "maverick") 
         # FIXME: check that the stuff in missing is ok
         print missing
 

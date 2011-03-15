@@ -1,0 +1,72 @@
+#!/usr/bin/python
+
+import argparse
+from apt_clone import AptClone
+
+if __name__ == "__main__":
+
+    # command line parser
+    parser = argparse.ArgumentParser(description="Clone/restore package info")
+    parser.add_argument("--debug", action="store_true", default=False,
+                        help="enable debug output")
+    subparser = parser.add_subparsers(title="Commands")
+    # clone
+    command = subparser.add_parser(
+        "clone", 
+        help="create a clone-file from <source> (usually '/') to <destination>")
+    command.add_argument("--source", default="/")
+    command.add_argument("destination")
+    command.add_argument("--with-dpkg-repack", 
+                         action="store_true", default=False,
+                         help="add no longer downloadable package to the state bundle (that can make it rather big)")
+    command.add_argument("--with-dpkg-status", 
+                         action="store_true", default=False,
+                         help="include full copy of dpkg-status file, mostly useful for debugging")
+    command.set_defaults(command="clone")
+    # restore
+    command = subparser.add_parser(
+        "restore",
+        help="restore a clone file from <source> to <destination> (usually '/')")
+    command.add_argument("source")
+    command.add_argument("--destination", default="/")
+    command.add_argument("--simulate", action="store_true", default=False)
+    command.set_defaults(command="restore")
+    # restore on new distro
+    command = subparser.add_parser(
+        "restore-new-distro",
+        help="restore a clone file from <source> to <destination> and try "\
+             "upgrading along the way")
+    command.add_argument("source")
+    command.add_argument("new_distro_codename")
+    command.add_argument("--destination", default="/")
+    command.add_argument("--simulate", action="store_true", default=False)
+    command.set_defaults(command="restore-new-distro")
+
+    # parse
+    args = parser.parse_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+
+    # do the actual work
+    clone = AptClone()
+    if args.command == "clone":
+        clone.save_state(args.source, args.destination, 
+                         args.with_dpkg_repack, args.with_dpkg_status)
+        print "not installable: %s" % ", ".join(clone.not_downloadable)
+        print "version mismatch: %s" % ", ".join(clone.version_mismatch)
+    elif args.command == "restore":
+        if args.simulate:
+            miss = clone.simulate_restore_state(args.source)
+            print "missing: %s" % ",".join(sorted(list(miss)))
+        else:
+            clone.restore_state(args.source, args.destination)
+    elif args.command == "restore-new-distro":
+        if args.simulate:
+            miss = clone.simulate_restore_state(
+                args.source, args.new_distro_codename)
+            print "missing: %s" % ",".join(sorted(list(miss)))
+        else:
+            clone.restore_state(
+                args.source, args.destination, args.new_distro_codename)
+        

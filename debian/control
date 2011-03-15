@@ -1,0 +1,20 @@
+Source: apt-clone
+Section: admin
+Priority: extra
+Maintainer: Michael Vogt <mvo@ubuntu.com>
+Build-Depends: debhelper (>= 7.0.50),
+               gettext,
+               intltool,
+Standards-Version: 3.8.3
+Vcs-Bzr: https://code.launchpad.net/~mvo/apt-clone/trunk
+Homepage: https://launchpad.net/apt-clone
+
+Package: apt-clone
+Architecture: all
+Depends: ${python:Depends},
+         ${misc:Depends},
+	 python-apt 
+Description: Script to create state bundles
+ This package can be used to clone/restore the packages on a apt based
+ system. It will save/restore the packages, sources.list, keyring,
+ automatic-installed states.
