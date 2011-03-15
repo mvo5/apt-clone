@@ -54,7 +54,7 @@ class AptClone(object):
         If dpkg-repack is installed, it will be used to generate debs
         for the obsolete ones.
     """
-    CLONE_FILENAME = "apt-clone-state-%s.tar" % os.uname()[1]
+    CLONE_FILENAME = "apt-clone-state-%s.tar.gz" % os.uname()[1]
     
     def __init__(self, fetch_progress=None, install_progress=None,
                  cache_cls=None):
@@ -87,8 +87,8 @@ class AptClone(object):
             target = os.path.join(target, self.CLONE_FILENAME)
         else:
             targetdir = os.path.dirname(target)
-            if not target.endswith(".apt-clone.tar"):
-                target += ".apt-clone.tar"
+            if not target.endswith(".apt-clone.tar.gz"):
+                target += ".apt-clone.tar.gz"
 
         if sourcedir != '/':
             apt_pkg.init_config()
@@ -97,7 +97,7 @@ class AptClone(object):
                                os.path.join(sourcedir, 'var/lib/dpkg/status'))
             apt_pkg.init_system()
 
-        tar = tarfile.TarFile(name=target, mode="w")
+        tar = tarfile.open(name=target, mode="w:gz")
         self._write_state_installed_pkgs(sourcedir, tar)
         self._write_state_auto_installed(tar)
         self._write_state_sources_list(tar)
@@ -123,7 +123,7 @@ class AptClone(object):
                 elif not (pkg.installed.downloadable and
                           pkg.candidate.downloadable):
                     self.version_mismatch.add(pkg.name)
-        tarinfo = tarfile.TarInfo("var/lib/apt-clone/installed.pkgs")
+        tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
         tarinfo.size = len(s)
         tar.addfile(tarinfo, StringIO(s))
 
@@ -131,39 +131,40 @@ class AptClone(object):
         extended_states = apt_pkg.config.find_file(
             "Dir::State::extended_states")
         if os.path.exists(extended_states):
-            tar.add(extended_states, "var/lib/apt-clone/extended_states")
+            tar.add(extended_states, "./var/lib/apt-clone/extended_states")
 
     def _write_state_apt_preferences(self, tar):
         f = apt_pkg.config.find_file("Dir::Etc::preferences")
         if os.path.exists(f):
-            tar.add(f, arcname="etc/apt/preferences")
+            tar.add(f, arcname="./etc/apt/preferences")
         p = apt_pkg.config.find_dir("Dir::Etc::preferencesparts",
                                     "/etc/apt/preferences.d")
         if os.path.exists(p):
-            tar.add(p, arcname="etc/apt/preferences.d")
+            tar.add(p, arcname="./etc/apt/preferences.d")
 
     def _write_state_apt_keyring(self, tar):
         f = apt_pkg.config.find_file("Dir::Etc::trusted")
         if os.path.exists(f):
-            tar.add(f, arcname="etc/apt/trusted.gpg")
-        p = apt_pkg.config.find_dir("Dir::Etc::trustedparts")
+            tar.add(f, arcname="./etc/apt/trusted.gpg")
+        p = apt_pkg.config.find_dir("Dir::Etc::trustedparts",
+                                    "/etc/apt/trusted.gpg.d")
         if os.path.exists(p):
-            tar.add(p, arcname="etc/apt/trusted.gpg.d")
+            tar.add(p, arcname="./etc/apt/trusted.gpg.d")
 
     def _write_state_sources_list(self, tar):
         tar.add(apt_pkg.config.find_file("Dir::Etc::sourcelist"),
-                arcname="etc/apt/sources.list")
+                arcname="./etc/apt/sources.list")
         source_parts = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
         if os.path.exists(source_parts):
-            tar.add(source_parts, arcname="etc/apt/sources.list.d")
+            tar.add(source_parts, arcname="./etc/apt/sources.list.d")
 
     def _dpkg_repack(self, tar):
         tdir = tempfile.mkdtemp()
         for pkgname in self.not_downloadable:
             self.commands.repack_deb(pkgname, tdir)
-        tar.add(tdir, arcname="var/lib/apt-clone/debs")
-        #shutil.rmtree(tdir)
-        print tdir
+        tar.add(tdir, arcname="./var/lib/apt-clone/debs")
+        shutil.rmtree(tdir)
+        #print tdir
 
     # restore
     def restore_state(self, statefile, targetdir="/", new_distro=None):
@@ -173,14 +174,14 @@ class AptClone(object):
         """
         if targetdir != "/":
             apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
-        sourcedir = self._unpack_statefile(statefile)
-        self._restore_sources_list(sourcedir, targetdir)
+        self._restore_sources_list(statefile, targetdir)
+        self._restore_apt_keyring(statefile, targetdir)
         if new_distro:
             self._rewrite_sources_list(targetdir, new_distro)
-        self._restore_package_selection(sourcedir, targetdir)
+        self._restore_package_selection(statefile, targetdir)
         # FIXME: this needs to check if there are conflicts, e.g. via
         #        gdebi
-        self._restore_not_downloadable_debs(sourcedir, targetdir)
+        self._restore_not_downloadable_debs(statefile, targetdir)
 
     # simulate restore and return list of missing pkgs
     def simulate_restore_state(self, statefile, new_distro=None):
@@ -190,10 +191,8 @@ class AptClone(object):
         if not os.path.exists(target+os.path.dirname(dpkg_status)):
             os.makedirs(target+os.path.dirname(dpkg_status))
         shutil.copy(dpkg_status, target+dpkg_status)
-        # unpack source
-        sourcedir = self._unpack_statefile(statefile)
         # restore sources.list and update cache in tmp target
-        self._restore_sources_list(sourcedir, target)
+        self._restore_sources_list(statefile, target)
         # optionally rewrite on new distro
         if new_distro:
             self._rewrite_sources_list(target, new_distro)
@@ -201,37 +200,32 @@ class AptClone(object):
         cache.update(apt.progress.base.AcquireProgress())
         cache.open()
         # try to replay cache and see thats missing
-        missing = self._restore_package_selection_in_cache(sourcedir, cache)
+        missing = self._restore_package_selection_in_cache(statefile, cache)
         return missing
 
-    def _unpack_statefile(self, statefile):
-        # unpack state file
-        sourcedir = tempfile.mkdtemp(prefix="apt-clone-")
-        ret = subprocess.call(["tar", "xzf", os.path.abspath(statefile)],
-                              cwd=sourcedir)
-        if ret != 0:
-            return None
-        return sourcedir
+    def _restore_sources_list(self, statefile, targetdir):
+        tar = tarfile.open(statefile)
+        tar.extract("./etc/apt/sources.list", targetdir)
+        tar.extract("./etc/apt/sources.list.d", targetdir)
 
-    def _restore_sources_list(self, sourcedir, targetdir):
-        tdir = targetdir+apt_pkg.config.find_dir("Dir::Etc")
-        if not os.path.exists(tdir):
-            os.makedirs(targetdir+apt_pkg.config.find_dir("Dir::Etc"))
-        shutil.copy2(
-            os.path.join(sourcedir, "sources.list"),
-            targetdir+apt_pkg.config.find_file("Dir::Etc::sourcelist"))
-        # sources.list.d
-        tdir = targetdir+apt_pkg.config.find_dir("Dir::Etc::sourceparts")
-        if not os.path.exists(tdir):
-            os.makedirs(tdir)
-        for f in glob.glob(os.path.join(sourcedir, "sources.list.d", "*.list")):
-            shutil.copy2(os.path.join(sourcedir, "sources.list.d", f),
-                         tdir)
+    def _restore_apt_keyring(self, statefile, targetdir):
+        tar = tarfile.open(statefile)
+        try:
+            tar.extract("./etc/apt/trusted.gpg", targetdir)
+        except KeyError:
+            pass
+        try:
+            tar.extract("./etc/apt/trusted.gpg.d", targetdir)
+        except KeyError:
+            passs
 
-    def _restore_package_selection_in_cache(self, sourcedir, cache):
+    def _restore_package_selection_in_cache(self, statefile, cache):
         # reinstall packages
         pkgs = set()
-        for line in open(os.path.join(sourcedir, "installed.pkgs")):
+        # get the installed.pkgs data
+        tar = tarfile.open(statefile)
+        f = tar.extractfile("./var/lib/apt-clone/installed.pkgs")
+        for line in f.readlines():
             actiongroup = cache.actiongroup()
             line = line.strip()
             if line.startswith("#") or line == "":
@@ -261,19 +255,25 @@ class AptClone(object):
                 missing.add(pkg)
         return missing
 
-    def _restore_package_selection(self, sourcedir, targetdir):
+    def _restore_package_selection(self, statefile, targetdir):
         # create new cache
         cache = self._cache_cls(rootdir=targetdir)
         cache.update(self.fetch_progress)
         cache.open()
-        self._restore_package_selection_in_cache(sourcedir, cache)
+        self._restore_package_selection_in_cache(statefile, cache)
         # do it
         cache.commit(self.fetch_progress, self.install_progress)
 
-    def _restore_not_downloadable_debs(self, sourcedir, targetdir):
+    def _restore_not_downloadable_debs(self, statefile, targetdir):
+        tar = tarfile.open(statefile)
+        try:
+            tar.extract("./var/lib/apt-clone/debs", targetdir)
+        except KeyError:
+            return
         debs = []
-        for deb in glob.glob(os.path.join(sourcedir, "debs", "*.deb")):
-            debpath = os.path.join(sourcedir, "debs", deb)
+        path = os.path.join(targetdir, "./var/lib/apt-clone/debs")
+        for deb in glob.glob(os.path.join(path, "*.deb")):
+            debpath = os.path.join(path, deb)
             debs.append(debpath)
         self.commands.install_debs(debs, targetdir)
 

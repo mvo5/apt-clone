@@ -56,16 +56,16 @@ APT::Architecture "i386";
         # verify that we got the tarfile
         tarname = os.path.join(targetdir, clone.CLONE_FILENAME)
         self.assertTrue(os.path.exists(tarname))
-        tar = tarfile.TarFile(tarname)
+        tar = tarfile.open(tarname)
         #print tar.getmembers()
         # verify members in tar
         members = [m.name for m in tar.getmembers()]
-        self.assertTrue("etc/apt/sources.list" in members)
-        self.assertTrue("var/lib/apt-clone/installed.pkgs" in members)
-        self.assertTrue("var/lib/apt-clone/extended_states" in members)
-        self.assertTrue("etc/apt/sources.list.d" in members)
-        self.assertTrue("etc/apt/preferences.d" in members)
-        self.assertTrue("etc/apt/preferences" in members)
+        self.assertTrue("./etc/apt/sources.list" in members)
+        self.assertTrue("./var/lib/apt-clone/installed.pkgs" in members)
+        self.assertTrue("./var/lib/apt-clone/extended_states" in members)
+        self.assertTrue("./etc/apt/sources.list.d" in members)
+        self.assertTrue("./etc/apt/preferences.d" in members)
+        self.assertTrue("./etc/apt/preferences" in members)
         if clone.not_downloadable:
             self.assertEqual(clone.commands.repack_deb.called, with_dpkg_repack)
 
@@ -76,7 +76,8 @@ APT::Architecture "i386";
         targetdir = self.tempdir
         # test
         clone = AptClone(cache_cls=MockAptCache)
-        clone.restore_state("./tests/data/apt-state.tar.gz", targetdir)
+        clone.restore_state(
+            "./tests/data/apt-state_chroot_with_vim.tar.gz", targetdir)
         self.assertTrue(
             os.path.exists(os.path.join(targetdir, "etc","apt","sources.list")))
 
@@ -104,28 +105,6 @@ APT::Architecture "i386";
         self.assertTrue("maverick" in open(sources_list).read())
         self.assertFalse("lucid" in open(sources_list).read())
         
-
-    def test_save_pkgselection_only(self):
-        clone = AptClone(cache_cls=MockAptCache)
-        targetdir = os.path.join(self.tempdir, "pkgstates.only")
-        os.makedirs(targetdir)
-        # clone
-        sourcedir="/"
-        clone._write_state_installed_pkgs(sourcedir, targetdir)
-        self.assertTrue(
-            os.path.exists(os.path.join(targetdir, "installed.pkgs")))
-
-    def test_restore_pkgselection_only(self):
-        clone = AptClone(cache_cls=MockAptCache)
-        targetdir = self.tempdir
-        open(os.path.join(targetdir, "installed.pkgs"), "w").write("""
-4g8 1.0-3 0
-libnet1 1.1.2-1 1
-""")
-        cache = apt.Cache()
-        clone._restore_package_selection_in_cache(targetdir, cache)
-        self.assertEqual(len(cache.get_changes()), 2)
-
     def test_restore_state_simulate(self):
         clone = AptClone()
         missing = clone.simulate_restore_state("./tests/data/apt-state.tar.gz")
