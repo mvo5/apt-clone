@@ -1,3 +1,9 @@
+apt-clone (0.1.1) UNRELEASED; urgency=low
+
+  * 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Mar 2011 15:43:34 +0100
+
 apt-clone (0.1) natty; urgency=low
 
   * initial version
