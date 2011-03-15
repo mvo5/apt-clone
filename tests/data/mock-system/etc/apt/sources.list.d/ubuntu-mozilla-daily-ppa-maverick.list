@@ -1,0 +1,6 @@
+#disabled on upgrade to natty disabled on upgrade to natty
+# deb http://ppa.launchpad.net/ubuntu-mozilla-daily/ppa/ubuntu/ natty main
+#disabled on upgrade to natty disabled on upgrade to natty
+# deb-src http://ppa.launchpad.net/ubuntu-mozilla-daily/ppa/ubuntu/ natty main
+
+

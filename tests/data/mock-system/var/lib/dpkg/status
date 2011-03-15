@@ -1,0 +1,18 @@
+Package: 2vcard
+Status: install ok installed
+Priority: optional
+Section: utils
+Installed-Size: 108
+Maintainer: Ubuntu MOTU Developers <ubuntu-motu@lists.ubuntu.com>
+Architecture: all
+Version: 0.5-3
+Description: perl script to convert an addressbook to VCARD file format
+ 2vcard is a little perl script that you can use to convert the
+ popular vcard file format. Currently 2vcard can only convert addressbooks
+ and alias files from the following formats: abook,eudora,juno,ldif,mutt,
+ mh and pine.
+ .
+ The VCARD format is used by gnomecard, for example, which is used by the
+ balsa email client.
+Original-Maintainer: Martin Albisetti <argentina@gmail.com>
+

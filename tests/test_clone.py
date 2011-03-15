@@ -6,6 +6,7 @@ import mock
 import os
 import shutil
 import sys
+import tarfile
 import tempfile
 import unittest
 
@@ -50,18 +51,20 @@ APT::Architecture "i386";
         targetdir = self.tempdir
         # test
         clone = AptClone(cache_cls=MockAptCache)
-        sourcedir = "/"
+        sourcedir = "./data/mock-system"
         clone.save_state(sourcedir, targetdir, with_dpkg_repack)
-        self.assertTrue(
-            os.path.exists(os.path.join(targetdir, "sources.list")))
-        self.assertTrue(
-            os.path.exists(os.path.join(targetdir, "installed.pkgs")))
-        self.assertTrue(
-            os.path.exists(os.path.join(targetdir, "extended_states")))
-        self.assertTrue(
-            os.path.exists(os.path.join(targetdir, "sources.list.d")))
-        self.assertTrue(
-            os.path.exists(os.path.join(targetdir, "apt-state.tar.gz")))
+        # verify that we got the tarfile
+        tarname = os.path.join(targetdir, clone.CLONE_FILENAME)
+        self.assertTrue(os.path.exists(tarname))
+        tar = tarfile.TarFile(tarname)
+        # verify members in tar
+        members = [m.name for m in tar.getmembers()]
+        self.assertTrue("etc/apt/sources.list" in members)
+        self.assertTrue("var/lib/apt-clone/installed.pkgs" in members)
+        self.assertTrue("var/lib/apt-clone/extended_states" in members)
+        self.assertTrue("etc/apt/sources.list.d" in members)
+        self.assertTrue("etc/apt/preferences.d" in members)
+        self.assertTrue("etc/apt/preferences" in members)
         if clone.not_downloadable:
             self.assertEqual(clone.commands.repack_deb.called, with_dpkg_repack)
 
