@@ -51,12 +51,13 @@ APT::Architecture "i386";
         targetdir = self.tempdir
         # test
         clone = AptClone(cache_cls=MockAptCache)
-        sourcedir = "./data/mock-system"
+        sourcedir = "./tests/data/mock-system"
         clone.save_state(sourcedir, targetdir, with_dpkg_repack)
         # verify that we got the tarfile
         tarname = os.path.join(targetdir, clone.CLONE_FILENAME)
         self.assertTrue(os.path.exists(tarname))
         tar = tarfile.TarFile(tarname)
+        #print tar.getmembers()
         # verify members in tar
         members = [m.name for m in tar.getmembers()]
         self.assertTrue("etc/apt/sources.list" in members)

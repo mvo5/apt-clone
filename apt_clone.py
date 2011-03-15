@@ -78,10 +78,17 @@ class AptClone(object):
             self._cache_cls = apt.Cache
 
     # save
-    def save_state(self, sourcedir, targetdir, with_dpkg_repack=False):
+    def save_state(self, sourcedir, target, with_dpkg_repack=False):
         """ save the current system state (installed pacakges, enabled
             repositories ...) into the apt-state.tar.gz file in targetdir
         """
+        if os.path.isdir(target):
+            targetdir = target
+            target = os.path.join(target, self.CLONE_FILENAME)
+        else:
+            targetdir = os.path.dirname(target)
+            if not target.endswith(".apt-clone.tar"):
+                target += ".apt-clone.tar"
 
         if sourcedir != '/':
             apt_pkg.init_config()
@@ -90,8 +97,7 @@ class AptClone(object):
                                os.path.join(sourcedir, 'var/lib/dpkg/status'))
             apt_pkg.init_system()
 
-        tar = tarfile.TarFile(
-            name=os.path.join(targetdir,self.CLONE_FILENAME), mode="w")
+        tar = tarfile.TarFile(name=target, mode="w")
         self._write_state_installed_pkgs(sourcedir, tar)
         self._write_state_auto_installed(tar)
         self._write_state_sources_list(tar)
@@ -332,9 +338,6 @@ if __name__ == "__main__":
     # do the actual work
     clone = AptClone()
     if args.command == "clone":
-        if os.path.exists(args.destination):
-            shutil.rmtree(args.destination)
-        os.mkdir(args.destination)
         clone.save_state(args.source, args.destination, args.with_dpkg_repack)
         print "not installable: %s" % ", ".join(clone.not_downloadable)
         print "version mismatch: %s" % ", ".join(clone.version_mismatch)
