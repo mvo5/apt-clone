@@ -130,6 +130,7 @@ class AptClone(object):
         # store the installed.pkgs
         tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
         tarinfo.size = len(s)
+        tarinfo.mtime = time.time()
         tar.addfile(tarinfo, StringIO(s))
 
     def _write_state_dpkg_status(self, tar):
