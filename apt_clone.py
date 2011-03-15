@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 
 from StringIO import StringIO
 
@@ -78,7 +79,8 @@ class AptClone(object):
             self._cache_cls = apt.Cache
 
     # save
-    def save_state(self, sourcedir, target, with_dpkg_repack=False):
+    def save_state(self, sourcedir, target, 
+                   with_dpkg_repack=False, with_dpkg_status=False):
         """ save the current system state (installed pacakges, enabled
             repositories ...) into the apt-state.tar.gz file in targetdir
         """
@@ -103,6 +105,8 @@ class AptClone(object):
         self._write_state_sources_list(tar)
         self._write_state_apt_preferences(tar)
         self._write_state_apt_keyring(tar)
+        if with_dpkg_status:
+            self._write_state_dpkg_status(sourcedir, tar)
         if with_dpkg_repack:
             self._dpkg_repack(tar)
         tar.close()
@@ -123,9 +127,17 @@ class AptClone(object):
                 elif not (pkg.installed.downloadable and
                           pkg.candidate.downloadable):
                     self.version_mismatch.add(pkg.name)
+        # store the installed.pkgs
         tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
         tarinfo.size = len(s)
         tar.addfile(tarinfo, StringIO(s))
+
+    def _write_state_dpkg_status(self, tar):
+        # store dpkg-status, this is not strictly needed as installed.pkgs
+        # should contain all we need, but we still keep it for debugging
+        # reasons
+        dpkg_status = apt_pkg.config.find_file("dir::state::status")
+        tar.add(dpkg_status, arcname="./var/lib/apt-clone/dpkg-status")
 
     def _write_state_auto_installed(self, tar):
         extended_states = apt_pkg.config.find_file(
@@ -309,6 +321,9 @@ if __name__ == "__main__":
     command.add_argument("--with-dpkg-repack", 
                          action="store_true", default=False,
                          help="add no longer downloadable package to the state bundle (that can make it rather big)")
+    command.add_argument("--with-dpkg-status", 
+                         action="store_true", default=False,
+                         help="include full copy of dpkg-status file, mostly useful for debugging")
     command.set_defaults(command="clone")
     # restore
     command = subparser.add_parser(
@@ -338,7 +353,8 @@ if __name__ == "__main__":
     # do the actual work
     clone = AptClone()
     if args.command == "clone":
-        clone.save_state(args.source, args.destination, args.with_dpkg_repack)
+        clone.save_state(args.source, args.destination, 
+                         args.with_dpkg_repack, args.with_dpkg_status)
         print "not installable: %s" % ", ".join(clone.not_downloadable)
         print "version mismatch: %s" % ", ".join(clone.version_mismatch)
     elif args.command == "restore":

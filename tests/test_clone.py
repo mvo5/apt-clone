@@ -65,6 +65,7 @@ class TestClone(unittest.TestCase):
         self.assertTrue("./etc/apt/sources.list" in members)
         self.assertTrue("./var/lib/apt-clone/installed.pkgs" in members)
         self.assertTrue("./var/lib/apt-clone/extended_states" in members)
+        self.assertTrue("./var/lib/apt-clone/dpkg-status" in members)
         self.assertTrue("./etc/apt/sources.list.d" in members)
         self.assertTrue("./etc/apt/preferences.d" in members)
         self.assertTrue("./etc/apt/preferences" in members)
