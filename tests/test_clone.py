@@ -25,18 +25,20 @@ class MockAptCache(apt.Cache):
 class TestClone(unittest.TestCase):
 
     def setUp(self):
-        apt_pkg.init_config()
-        apt_pkg.config.set("Debug::pkgDPkgPM","1")
-        apt_pkg.config.clear("DPkg::Post-Invoke")
-        self.tempdir = tempfile.mkdtemp("apt-clone-tests-")
+        apt_pkg.config.set("Dir", "/")
+        apt_pkg.config.set("dir::state::status", "/var/lib/dpkg/status")
+        self.tempdir = tempfile.mkdtemp("apt-clone-tests")
         os.makedirs(os.path.join(self.tempdir, "var/lib/dpkg/"))
         # ensure we are the right arch
         os.makedirs(os.path.join(self.tempdir, "etc/apt"))
         open(os.path.join(self.tempdir, "etc/apt/apt.conf"), "w").write('''
-APT::Architecture "i386";
 #clear Dpkg::Post-Invoke;
 #clear Dpkg::Pre-Invoke;
+#clear APT::Update;
 ''')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
 
     @mock.patch("apt_clone.LowLevelCommands")
     def test_save_state(self, mock_lowlevel):
@@ -92,8 +94,11 @@ APT::Architecture "i386";
         # create target dir
         targetdir = self.tempdir
         # status file from maverick (to simulate running on a maverick live-cd)
-        shutil.copy("./tests/data/dpkg-status/dpkg-status-ubuntu-maverick",
-                    os.path.join(targetdir, "var/lib/dpkg", "status"))
+        s=open("./tests/data/dpkg-status/dpkg-status-ubuntu-maverick").read()
+        s = s.replace(
+            "Architecture: i386",
+            "Architecture: %s" % apt_pkg.config.find("Apt::Architecture"))
+        open(os.path.join(targetdir, "var/lib/dpkg", "status"), "w").write(s)
         # test upgrade clone from lucid system to maverick
         clone = AptClone(cache_cls=MockAptCache)
         clone.restore_state(
@@ -113,11 +118,14 @@ APT::Architecture "i386";
 
     def test_restore_state_simulate_with_new_release(self):
         #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
+        apt_pkg.config.set(
+            "Dir::state::status", 
+            "./tests/data/dpkg-status/dpkg-status-ubuntu-maverick")
         clone = AptClone()
         missing = clone.simulate_restore_state(
             "./tests/data/apt-state-ubuntu-lucid.tar.gz", "maverick") 
         # FIXME: check that the stuff in missing is ok
-        #print missing
+        print missing
 
 if __name__ == "__main__":
     unittest.main()

@@ -217,7 +217,7 @@ class AptClone(object):
         try:
             tar.extract("./etc/apt/trusted.gpg.d", targetdir)
         except KeyError:
-            passs
+            pass
 
     def _restore_package_selection_in_cache(self, statefile, cache):
         # reinstall packages
