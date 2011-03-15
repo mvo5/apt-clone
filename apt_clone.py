@@ -61,6 +61,13 @@ class LowLevelCommands(object):
         ret = subprocess.call(repack_cmd + [pkgname], cwd=targetdir)
         return (ret == 0)
 
+    def debootstrap(self, targetdir, distro=None):
+        if distro is None:
+            import lsb_release
+            distro = lsb_release.get_distro_information()['CODENAME']
+        ret = subprocess.call(["debootstrap", distro, targetdir])
+        return (ret == 0)
+
 class AptClone(object):
     """ clone the package selection/installation of a existing system
         using the information that apt provides
@@ -197,6 +204,11 @@ class AptClone(object):
         """
         if targetdir != "/":
             apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
+
+        if not os.path.exists(targetdir):
+            print "Dir '%s' does not exist, need to bootstrap first" % targetdir
+            self.commands.debootstrap(targetdir)
+
         self._restore_sources_list(statefile, targetdir)
         self._restore_apt_keyring(statefile, targetdir)
         if new_distro:
