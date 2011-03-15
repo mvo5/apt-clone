@@ -3,8 +3,6 @@
 
 import apt
 import apt_pkg
-# default in py2.7
-import argparse
 import logging
 import glob
 import os
