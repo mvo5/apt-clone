@@ -113,9 +113,6 @@ class AptClone(object):
 
     def _write_state_installed_pkgs(self, sourcedir, tar):
         cache = self._cache_cls(rootdir=sourcedir)
-        if os.getuid() == 0:
-            cache.update(self.fetch_progress)
-        cache.open()
         s = ""
         for pkg in cache:
             if pkg.is_installed:
