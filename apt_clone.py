@@ -106,7 +106,7 @@ class AptClone(object):
         self._write_state_apt_preferences(tar)
         self._write_state_apt_keyring(tar)
         if with_dpkg_status:
-            self._write_state_dpkg_status(sourcedir, tar)
+            self._write_state_dpkg_status(tar)
         if with_dpkg_repack:
             self._dpkg_repack(tar)
         tar.close()
