@@ -1,6 +1,7 @@
 apt-clone (0.1.1) UNRELEASED; urgency=low
 
-  * 
+  * debian/contro:
+    - add missing build-depends, tis fixes a FTBFS
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Mar 2011 15:43:34 +0100
 

@@ -3,6 +3,7 @@ Section: admin
 Priority: extra
 Maintainer: Michael Vogt <michael.vogt@ubuntu.com>
 Build-Depends: debhelper (>= 7.0.50),
+               python-all,
                gettext,
                intltool,
 Standards-Version: 3.9.1
