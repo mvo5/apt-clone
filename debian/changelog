@@ -1,9 +1,12 @@
-apt-clone (0.1.1) UNRELEASED; urgency=low
+apt-clone (0.1.1) natty; urgency=low
 
   * debian/contro:
     - add missing build-depends, tis fixes a FTBFS
+  * apt_clone.py:
+    - when a empty dir is given as the destination bootstrap 
+      first and then restore the clone
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Mar 2011 15:43:34 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Mar 2011 10:14:59 +0100
 
 apt-clone (0.1) natty; urgency=low
 
