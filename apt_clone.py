@@ -196,6 +196,33 @@ class AptClone(object):
         shutil.rmtree(tdir)
         #print tdir
 
+    # info
+    def info(self, statefile):
+        tar = tarfile.open(statefile)
+        # guess distro infos
+        f = tar.extractfile("./etc/apt/sources.list")
+        distro = "unknown"
+        for line in f.readlines():
+            if line.startswith("#") or line.strip() == "":
+                continue
+            l = line.split()
+            if len(l) > 2 and not l[2].endswith("/"):
+                distro = l[2]
+                break
+        # nr installed
+        f = tar.extractfile("./var/lib/apt-clone/installed.pkgs")
+        installed = len(f.readlines())
+        # date
+        m = tar.getmember("./var/lib/apt-clone/installed.pkgs")
+        date = m.mtime
+        # check hostname (if found)
+        hostname = "unknown"
+        if "./var/lib/apt-clone/uname" in tar.getnames():
+            hostname = tar.extracefile("./var/lib/apt-clone/uname").read().strip()
+        return "Hostname: %s\nDistro: %s\nInstalled: %s\nDate: %s" % (
+            hostname, distro, installed, time.ctime(date))
+
+
     # restore
     def restore_state(self, statefile, targetdir="/", new_distro=None):
         """ take a statefile produced via (like apt-state.tar.gz)

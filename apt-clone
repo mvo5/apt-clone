@@ -27,6 +27,12 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action="store_true", default=False,
                         help="enable debug output")
     subparser = parser.add_subparsers(title="Commands")
+    # info
+    command = subparser.add_parser(
+        "info", 
+        help="info about a apt-clone archive")
+    command.add_argument("source")
+    command.set_defaults(command="info")
     # clone
     command = subparser.add_parser(
         "clone", 
@@ -67,6 +73,9 @@ if __name__ == "__main__":
 
     # do the actual work
     clone = AptClone()
+    if args.command == "info":
+        info = clone.info(args.source)
+        print info
     if args.command == "clone":
         clone.save_state(args.source, args.destination, 
                          args.with_dpkg_repack, args.with_dpkg_status)

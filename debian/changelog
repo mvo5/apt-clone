@@ -1,3 +1,9 @@
+apt-clone (0.1.2) UNRELEASED; urgency=low
+
+  * add apt-clone info command
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Mar 2011 15:28:57 +0200
+
 apt-clone (0.1.1) natty; urgency=low
 
   * debian/contro:
