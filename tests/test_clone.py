@@ -54,7 +54,7 @@ class TestClone(unittest.TestCase):
         # test
         clone = AptClone(cache_cls=MockAptCache)
         sourcedir = "./data/mock-system"
-        clone.save_state(sourcedir, targetdir, with_dpkg_repack)
+        clone.save_state(sourcedir, targetdir, with_dpkg_repack, with_dpkg_status=True)
         # verify that we got the tarfile
         tarname = os.path.join(targetdir, clone.CLONE_FILENAME)
         self.assertTrue(os.path.exists(tarname))
