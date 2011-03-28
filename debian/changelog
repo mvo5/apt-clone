@@ -1,13 +1,21 @@
-apt-clone (0.1.2) UNRELEASED; urgency=low
+apt-clone (0.1.2) natty; urgency=low
 
-  * add apt-clone info command to get info about a existing apt-clone
-    archive
   * apt_clone.py:
     - be more robust against situations where a pacakge fails to be
       marked for install during the restore (e.g. in a clone-upgrade
       situation). Thanks to Evan Dandrea
+    - write uname info to the clone archive
+    - include the apt Debug::pkgDepcache::AutoInstall output when in 
+      debug mode
+  * apt-clone:
+    - add info command
+  * tests/test_clone.py:
+    - fix test
+  * tests/test_clone_upgrade.py:
+    - add save/restare tests for clone-upgrade against maverick->natty
+      for ubuntu-stanard and {ubuntu,kubuntu,xubuntu}-desktop
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Mar 2011 15:28:57 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Mar 2011 16:20:28 +0200
 
 apt-clone (0.1.1) natty; urgency=low
 
