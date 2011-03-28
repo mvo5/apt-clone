@@ -18,7 +18,17 @@ from apt_clone import AptClone
 
 class TestCloneUpgrade(unittest.TestCase):
 
-    def test_clone_upgrade(self):
+    def test_clone_upgrade_regression(self):
+        """ regression test against known installs """
+        new = self._create_fake_upgradable_root("natty", meta="ubuntu-desktop")
+        cache = apt.Cache(rootdir=new)
+        clone = AptClone()
+        clone._restore_package_selection_in_cache(
+            "./data/regression/apt-clone-state-ubuntu.tar.gz", cache)
+        self.assertTrue(len(cache.get_changes()) > 0)
+
+    def test_clone_upgrade_synthetic(self):
+        """ test clone upgrade with on-the-fly generated chroots """
         for meta in ["ubuntu-standard", "ubuntu-desktop", "kubuntu-desktop", 
                      "xubuntu-desktop"]:
             logging.info("testing %s" % meta)
