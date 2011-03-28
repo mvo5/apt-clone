@@ -32,6 +32,7 @@ from StringIO import StringIO
 
 if "APT_CLONE_DEBUG_RESOLVER" in os.environ:
     apt_pkg.config.set("Debug::pkgProblemResolver", "1")
+    apt_pkg.config.set("Debug::pkgDepCache::AutoInstall", "1")
 
 class LowLevelCommands(object):
     """ calls to the lowlevel operations to install debs
@@ -308,6 +309,7 @@ class AptClone(object):
 
     def _restore_package_selection_in_cache(self, statefile, cache):
         # reinstall packages
+        missing = set()
         pkgs = set()
         # get the installed.pkgs data
         tar = tarfile.open(statefile)
@@ -322,7 +324,11 @@ class AptClone(object):
             auto_installed = int(auto)
             from_user = not auto_installed
             if name in cache:
-                cache[name].mark_install(from_user=from_user)
+                try:
+                    cache[name].mark_install(from_user=from_user)
+                except SystemError:
+                    logging.warn("can't add %s" % name)
+                    missing.add(name)
                 # ensure the auto install info is 
                 cache[name].mark_auto(auto_installed)
         # check what is broken and try to fix
@@ -333,7 +339,6 @@ class AptClone(object):
                     resolver.protect(pkg._pkg)
             resolver.resolve()
         # now go over and see what is missing
-        missing = set()
         for pkg in pkgs:
             if not pkg in cache:
                 missing.add(pkg)
