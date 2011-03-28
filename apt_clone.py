@@ -218,7 +218,15 @@ class AptClone(object):
                 break
         # nr installed
         f = tar.extractfile("./var/lib/apt-clone/installed.pkgs")
-        installed = len(f.readlines())
+        installed = autoinstalled = 0
+        meta = []
+        for line in f.readlines():
+            (name, version, auto) = line.strip().split()
+            installed += 1
+            if int(auto):
+                autoinstalled += 1
+            if name.endswith("-desktop"):
+                meta.append(name)
         # date
         m = tar.getmember("./var/lib/apt-clone/installed.pkgs")
         date = m.mtime
@@ -227,9 +235,18 @@ class AptClone(object):
         if "./var/lib/apt-clone/uname" in tar.getnames():
             uname = tar.extractfile("./var/lib/apt-clone/uname").readlines()
             hostname = uname[1].strip()
-        return "Hostname: %s\nDistro: %s\nInstalled: %s\nDate: %s" % (
-            hostname, distro, installed, time.ctime(date))
-
+        return "Hostname: %(hostname)s\n"\
+               "Distro: %(distro)s\n"\
+               "Meta: %(meta)s\n"\
+               "Installed: %(installed)s pkgs (%(autoinstalled)s automatic)\n"\
+               "Date: %(date)s" % { 'hostname' : hostname,
+                              'distro' : distro,
+                              'meta' : ", ".join(meta),
+                              'installed' : installed,
+                              'autoinstalled' : autoinstalled, 
+                              'date' : time.ctime(date) 
+                             }
+    
 
     # restore
     def restore_state(self, statefile, targetdir="/", new_distro=None):
