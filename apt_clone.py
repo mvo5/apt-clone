@@ -120,6 +120,7 @@ class AptClone(object):
             apt_pkg.init_system()
 
         tar = tarfile.open(name=target, mode="w:gz")
+        self._write_uname(tar)
         self._write_state_installed_pkgs(sourcedir, tar)
         self._write_state_auto_installed(tar)
         self._write_state_sources_list(tar)
@@ -130,6 +131,12 @@ class AptClone(object):
         if with_dpkg_repack:
             self._dpkg_repack(tar)
         tar.close()
+
+    def _write_uname(self, tar):
+        f = tempfile.NamedTemporaryFile()
+        f.write("\n".join(os.uname()))
+        f.flush()
+        tar.add(f.name, arcname="./var/lib/apt-clone/uname")
 
     def _write_state_installed_pkgs(self, sourcedir, tar):
         cache = self._cache_cls(rootdir=sourcedir)
@@ -218,7 +225,8 @@ class AptClone(object):
         # check hostname (if found)
         hostname = "unknown"
         if "./var/lib/apt-clone/uname" in tar.getnames():
-            hostname = tar.extracefile("./var/lib/apt-clone/uname").read().strip()
+            uname = tar.extractfile("./var/lib/apt-clone/uname").readlines()
+            hostname = uname[1].strip()
         return "Hostname: %s\nDistro: %s\nInstalled: %s\nDate: %s" % (
             hostname, distro, installed, time.ctime(date))
 
