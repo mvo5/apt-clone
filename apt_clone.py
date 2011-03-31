@@ -134,12 +134,17 @@ class AptClone(object):
         tar.close()
 
     def _write_uname(self, tar):
-        # we extend the info a little bit
-        uname_info = "\n".join(os.uname())
-        uname_info += "AptArchitecture: %s\n" % apt_pkg.config.Find("APT::Architecture")
+        # not really uname
+        host_info = { 'hostname'   : os.uname()[1],
+                       'kernel'     : os.uname()[2],
+                       'uname_arch' : os.uname()[4],
+                       'arch'       : apt_pkg.config.Find("APT::Architecture")
+                     }
         # save it
         f = tempfile.NamedTemporaryFile()
-        f.write(uname_info)
+        info = "\n".join(["%s: %s" % (key, value) 
+                          for (key, value) in host_info.iteritems()])
+        f.write(info+"\n")
         f.flush()
         tar.add(f.name, arcname="./var/lib/apt-clone/uname")
 
@@ -239,24 +244,23 @@ class AptClone(object):
         hostname = "unknown"
         arch = "unknown"
         if "./var/lib/apt-clone/uname" in tar.getnames():
-            uname = tar.extractfile("./var/lib/apt-clone/uname").readlines()
-            hostname = uname[1].strip()
-            if len(uname) > 4:
-                arch = uname[4]
+            info = tar.extractfile("./var/lib/apt-clone/uname").read()
+            section = apt_pkg.TagSection(info)
+            hostname = section.get("hostname", "unknown")
+            arch = section.get("arch", "unknown")
         return "Hostname: %(hostname)s\n"\
+               "Arch: %(arch)s\n"\
                "Distro: %(distro)s\n"\
                "Meta: %(meta)s\n"\
                "Installed: %(installed)s pkgs (%(autoinstalled)s automatic)\n"\
-               "Date: %(date)s\n"\
-               "Arch: %(arch)s\n" % { 'hostname' : hostname,
-                              'distro' : distro,
-                              'meta' : ", ".join(meta),
-                              'installed' : installed,
-                              'autoinstalled' : autoinstalled, 
-                              'date' : time.ctime(date),
-                              'arch' : arch,
-                             }
-    
+               "Date: %(date)s\n" % { 'hostname' : hostname,
+                                      'distro' : distro,
+                                      'meta' : ", ".join(meta),
+                                      'installed' : installed,
+                                      'autoinstalled' : autoinstalled, 
+                                      'date' : time.ctime(date),
+                                      'arch' : arch,
+                                      }
 
     # restore
     def restore_state(self, statefile, targetdir="/", new_distro=None):
