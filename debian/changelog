@@ -1,4 +1,4 @@
-apt-clone (0.1.3) UNRELEASED; urgency=low
+apt-clone (0.1.3) natty; urgency=low
 
   * debian/control:
     - add recommends on dpkg-repack (LP: #741269), thanks to Alin Andrei 
