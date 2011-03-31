@@ -15,7 +15,9 @@ Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
 	 python-apt 
+Recommends: dpkg-repack
 Description: Script to create state bundles
  This package can be used to clone/restore the packages on a apt based
- system. It will save/restore the packages, sources.list, keyring,
- automatic-installed states.
+ system. It will save/restore the packages, sources.list, keyring and
+ automatic-installed states. It can also save/restore no longer
+ downloadable packages using dpkg-repack.
