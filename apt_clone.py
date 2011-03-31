@@ -134,8 +134,12 @@ class AptClone(object):
         tar.close()
 
     def _write_uname(self, tar):
+        # we extend the info a little bit
+        uname_info = "\n".join(os.uname())
+        uname_info += "AptArchitecture: %s\n" % apt_pkg.config.Find("APT::Architecture")
+        # save it
         f = tempfile.NamedTemporaryFile()
-        f.write("\n".join(os.uname()))
+        f.write(uname_info)
         f.flush()
         tar.add(f.name, arcname="./var/lib/apt-clone/uname")
 
@@ -233,19 +237,24 @@ class AptClone(object):
         date = m.mtime
         # check hostname (if found)
         hostname = "unknown"
+        arch = "unknown"
         if "./var/lib/apt-clone/uname" in tar.getnames():
             uname = tar.extractfile("./var/lib/apt-clone/uname").readlines()
             hostname = uname[1].strip()
+            if len(uname) > 4:
+                arch = uname[4]
         return "Hostname: %(hostname)s\n"\
                "Distro: %(distro)s\n"\
                "Meta: %(meta)s\n"\
                "Installed: %(installed)s pkgs (%(autoinstalled)s automatic)\n"\
-               "Date: %(date)s" % { 'hostname' : hostname,
+               "Date: %(date)s\n"\
+               "Arch: %(arch)s\n" % { 'hostname' : hostname,
                               'distro' : distro,
                               'meta' : ", ".join(meta),
                               'installed' : installed,
                               'autoinstalled' : autoinstalled, 
-                              'date' : time.ctime(date) 
+                              'date' : time.ctime(date),
+                              'arch' : arch,
                              }
     
 
