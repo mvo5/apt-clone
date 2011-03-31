@@ -58,7 +58,7 @@ class LowLevelCommands(object):
         if not os.getuid() == 0:
             if not os.path.exists("/usr/bin/fakeroot"):
                 return
-            repack_cmd.insert(0, "fakeroot")
+            repack_cmd = ["fakeroot", "-u"] + repack_cmd
         ret = subprocess.call(repack_cmd + [pkgname], cwd=targetdir)
         return (ret == 0)
 
@@ -294,7 +294,10 @@ class AptClone(object):
     def _restore_sources_list(self, statefile, targetdir):
         tar = tarfile.open(statefile)
         tar.extract("./etc/apt/sources.list", targetdir)
-        tar.extract("./etc/apt/sources.list.d", targetdir)
+        try:
+            tar.extract("./etc/apt/sources.list.d", targetdir)
+        except KeyError:
+            pass
 
     def _restore_apt_keyring(self, statefile, targetdir):
         tar = tarfile.open(statefile)

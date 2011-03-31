@@ -1,7 +1,10 @@
-apt-clone (0.1.3) unstable; urgency=low
+apt-clone (0.1.3) UNRELEASED; urgency=low
 
   * debian/control:
-    - add recommends on dpkg-repack (LP: #741269)
+    - add recommends on dpkg-repack (LP: #741269), thanks to Alin Andrei 
+  * apt_clone.py:
+    - run fakeroot with "-u" (LP: #741273), thanks to Alin Andrei 
+    - do not fail if sources.list.d does not exist (LP: #745397)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 Mar 2011 09:20:03 +0200
 
