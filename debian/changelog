@@ -5,8 +5,10 @@ apt-clone (0.1.3) UNRELEASED; urgency=low
   * apt_clone.py:
     - run fakeroot with "-u" (LP: #741273), thanks to Alin Andrei 
     - do not fail if sources.list.d does not exist (LP: #745397)
+  * .bzr-builddeb/default.conf:
+    - run tests in the pre-build hook
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 Mar 2011 09:20:03 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 Mar 2011 09:26:44 +0200
 
 apt-clone (0.1.2) natty; urgency=low
 
