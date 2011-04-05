@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+from apt.cache import FetchFailedException
 import apt_pkg
 import logging
 import glob
@@ -67,6 +68,11 @@ class LowLevelCommands(object):
             import lsb_release
             distro = lsb_release.get_distro_information()['CODENAME']
         ret = subprocess.call(["debootstrap", distro, targetdir])
+        return (ret == 0)
+
+    def merge_keys(self, fromkeyfile, intokeyfile):
+        ret = subprocess.call(['apt-key', '--keyring', intokeyfile,
+                               'add', fromkeyfile])
         return (ret == 0)
 
 class AptClone(object):
@@ -298,7 +304,12 @@ class AptClone(object):
         if new_distro:
             self._rewrite_sources_list(target, new_distro)
         cache = self._cache_cls(rootdir=target)
-        cache.update(apt.progress.base.AcquireProgress())
+        try:
+            cache.update(apt.progress.base.AcquireProgress())
+        except FetchFailedException:
+            # This cannot be resolved here, but it should not be interpreted as
+            # a fatal error.
+            pass
         cache.open()
         # try to replay cache and see thats missing
         missing = self._restore_package_selection_in_cache(statefile, cache)
@@ -306,6 +317,9 @@ class AptClone(object):
 
     def _restore_sources_list(self, statefile, targetdir):
         tar = tarfile.open(statefile)
+        existing = os.path.join(targetdir, "etc", "apt", "sources.list")
+        if os.path.exists(existing):
+            shutil.copy(existing, '%s.apt-clone' % existing)
         tar.extract("./etc/apt/sources.list", targetdir)
         try:
             tar.extract("./etc/apt/sources.list.d", targetdir)
@@ -313,6 +327,10 @@ class AptClone(object):
             pass
 
     def _restore_apt_keyring(self, statefile, targetdir):
+        existing = os.path.join(targetdir, "etc", "apt", "trusted.gpg")
+        backup = '%s.apt-clone' % existing
+        if os.path.exists(existing):
+            shutil.copy(existing, backup)
         tar = tarfile.open(statefile)
         try:
             tar.extract("./etc/apt/trusted.gpg", targetdir)
@@ -322,6 +340,9 @@ class AptClone(object):
             tar.extract("./etc/apt/trusted.gpg.d", targetdir)
         except KeyError:
             pass
+        if os.path.exists(backup):
+            self.commands.merge_keys(backup, existing)
+            os.remove(backup)
 
     def _restore_package_selection_in_cache(self, statefile, cache):
         # reinstall packages
@@ -366,7 +387,12 @@ class AptClone(object):
     def _restore_package_selection(self, statefile, targetdir):
         # create new cache
         cache = self._cache_cls(rootdir=targetdir)
-        cache.update(self.fetch_progress)
+        try:
+            cache.update(self.fetch_progress)
+        except FetchFailedException:
+            # This cannot be resolved here, but it should not be interpreted as
+            # a fatal error.
+            pass
         cache.open()
         self._restore_package_selection_in_cache(statefile, cache)
         # do it
@@ -386,7 +412,7 @@ class AptClone(object):
         self.commands.install_debs(debs, targetdir)
 
     def _rewrite_sources_list(self, targetdir, new_distro):
-        from aptsources.sourceslist import SourcesList
+        from aptsources.sourceslist import SourcesList, SourceEntry
         apt_pkg.config.set(
             "Dir::Etc::sourcelist",
             os.path.abspath(os.path.join(targetdir, "etc", "apt", "sources.list")))
@@ -394,10 +420,29 @@ class AptClone(object):
             "Dir::Etc::sourceparts",
             os.path.abspath(os.path.join(targetdir, "etc", "apt", "sources.list.d")))
         sources = SourcesList()
+
         for entry in sources.list[:]:
             if entry.invalid or entry.disabled:
                 continue
             entry.dist = new_distro
+
+        existing = os.path.join(targetdir, "etc", "apt",
+                                "sources.list.apt-clone")
+        sourcelist = apt_pkg.config.find_file("Dir::Etc::sourcelist")
+        if os.path.exists(existing):
+            with open(existing, 'r') as fp:
+                for line in fp:
+                    src = SourceEntry(line, sourcelist)
+                    if (src.invalid or src.disabled) or src not in sources:
+                        sources.list.append(src)
+            os.remove(existing)
+
+        for entry in sources.list:
+            if entry.uri.startswith('cdrom:'):
+                # Make sure CD entries come first.
+                sources.list.remove(entry)
+                sources.list.insert(0, entry)
+                entry.disabled = True
         sources.save()
 
 
