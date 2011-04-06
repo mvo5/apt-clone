@@ -424,7 +424,15 @@ class AptClone(object):
         for entry in sources.list[:]:
             if entry.invalid or entry.disabled:
                 continue
-            entry.dist = new_distro
+            replacement = ''
+            for pocket in ('updates', 'security', 'backports'):
+                if entry.dist.endswith('-%s' % pocket):
+                    replacement = '%s-%s' % (new_distro, pocket)
+                    break
+            if replacement:
+                entry.dist = replacement
+            else:
+                entry.dist = new_distro
 
         existing = os.path.join(targetdir, "etc", "apt",
                                 "sources.list.apt-clone")
@@ -444,5 +452,4 @@ class AptClone(object):
                 sources.list.insert(0, entry)
                 entry.disabled = True
         sources.save()
-
 
