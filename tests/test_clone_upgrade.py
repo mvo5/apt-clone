@@ -44,7 +44,8 @@ class TestCloneUpgrade(unittest.TestCase):
             cache = apt.Cache(rootdir=new)
             clone = AptClone()
             clone._restore_package_selection_in_cache("lala.tar.gz", cache)
-            self.assertFalse(cache[meta].marked_delete)
+            self.assertFalse(cache[meta].marked_delete,
+                             "package %s marked for removal" % meta)
             self.assertTrue(len(cache.get_changes()) > 0)
             # cleanup
             shutil.rmtree(old)
