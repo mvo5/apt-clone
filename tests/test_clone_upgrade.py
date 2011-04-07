@@ -15,6 +15,7 @@ sys.path.insert(0, "..")
 import apt_clone
 from apt_clone import AptClone
 
+#apt.apt_pkg.config.set("Debug::pkgProblemResolver", "1")
 
 class TestCloneUpgrade(unittest.TestCase):
 
@@ -29,7 +30,7 @@ class TestCloneUpgrade(unittest.TestCase):
 
     def test_clone_upgrade_synthetic(self):
         """ test clone upgrade with on-the-fly generated chroots """
-        for meta in ["ubuntu-standard", "ubuntu-desktop", "kubuntu-desktop", 
+        for meta in ["ubuntu-standard", "ubuntu-desktop", "kubuntu-desktop",
                      "xubuntu-desktop"]:
             logging.info("testing %s" % meta)
             old = self._create_fake_upgradable_root("maverick", meta=meta)
@@ -43,7 +44,7 @@ class TestCloneUpgrade(unittest.TestCase):
             new = self._create_fake_upgradable_root("natty", meta=meta)
             cache = apt.Cache(rootdir=new)
             clone = AptClone()
-            clone._restore_package_selection_in_cache("lala.tar.gz", cache)
+            clone._restore_package_selection_in_cache("lala.tar.gz", cache, protect_installed=True)
             self.assertFalse(cache[meta].marked_delete,
                              "package %s marked for removal" % meta)
             self.assertTrue(len(cache.get_changes()) > 0)

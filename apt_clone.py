@@ -269,7 +269,7 @@ class AptClone(object):
                                       }
 
     # restore
-    def restore_state(self, statefile, targetdir="/", new_distro=None):
+    def restore_state(self, statefile, targetdir="/", new_distro=None, protect_installed=False):
         """ take a statefile produced via (like apt-state.tar.gz)
             save_state() and restore the packages/repositories
             into targetdir (that is usually "/")
@@ -285,7 +285,7 @@ class AptClone(object):
         self._restore_apt_keyring(statefile, targetdir)
         if new_distro:
             self._rewrite_sources_list(targetdir, new_distro)
-        self._restore_package_selection(statefile, targetdir)
+        self._restore_package_selection(statefile, targetdir, protect_installed)
         # FIXME: this needs to check if there are conflicts, e.g. via
         #        gdebi
         self._restore_not_downloadable_debs(statefile, targetdir)
@@ -344,10 +344,16 @@ class AptClone(object):
             self.commands.merge_keys(backup, existing)
             os.remove(backup)
 
-    def _restore_package_selection_in_cache(self, statefile, cache):
+    def _restore_package_selection_in_cache(self, statefile, cache, protect_installed=False):
         # reinstall packages
         missing = set()
         pkgs = set()
+        # procted installed pkgs
+        resolver = apt_pkg.ProblemResolver(cache._depcache)
+        if protect_installed:
+            for pkg in cache:
+                if pkg.is_installed:
+                    resolver.protect(pkg._pkg)
         # get the installed.pkgs data
         tar = tarfile.open(statefile)
         f = tar.extractfile("./var/lib/apt-clone/installed.pkgs")
@@ -362,7 +368,14 @@ class AptClone(object):
             from_user = not auto_installed
             if name in cache:
                 try:
-                    cache[name].mark_install(from_user=from_user)
+                    if protect_installed:
+                        cache[name].mark_install(from_user=from_user, auto_fix=False)
+                        if cache.broken_count > 0:
+                            resolver.resolve()
+                            if not cache[name].marked_install:
+                                raise SystemError, "pkg %s not marked upgrade" % name
+                    else:
+                        cache[name].mark_install(from_user=from_user)
                 except SystemError:
                     logging.warn("can't add %s" % name)
                     missing.add(name)
@@ -370,10 +383,6 @@ class AptClone(object):
                 cache[name].mark_auto(auto_installed)
         # check what is broken and try to fix
         if cache.broken_count > 0:
-            resolver = apt_pkg.ProblemResolver(cache._depcache)
-            for pkg in cache:
-                if pkg.is_installed:
-                    resolver.protect(pkg._pkg)
             resolver.resolve()
         # now go over and see what is missing
         for pkg in pkgs:
@@ -384,7 +393,7 @@ class AptClone(object):
                 missing.add(pkg)
         return missing
 
-    def _restore_package_selection(self, statefile, targetdir):
+    def _restore_package_selection(self, statefile, targetdir, protect_installed):
         # create new cache
         cache = self._cache_cls(rootdir=targetdir)
         try:
@@ -394,7 +403,7 @@ class AptClone(object):
             # a fatal error.
             pass
         cache.open()
-        self._restore_package_selection_in_cache(statefile, cache)
+        self._restore_package_selection_in_cache(statefile, cache, protect_installed)
         # do it
         cache.commit(self.fetch_progress, self.install_progress)
 

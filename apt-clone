@@ -58,7 +58,9 @@ if __name__ == "__main__":
     command = subparser.add_parser(
         "restore-new-distro",
         help="restore a clone file from <source> to <destination> and try "\
-             "upgrading along the way")
+             "upgrading along the way. this can be used so that the current "\
+             "release is cloned, a new install is done and then the old clone "\
+             "is installed")
     command.add_argument("source")
     command.add_argument("new_distro_codename")
     command.add_argument("--destination", default="/")
@@ -88,11 +90,24 @@ if __name__ == "__main__":
         else:
             clone.restore_state(args.source, args.destination)
     elif args.command == "restore-new-distro":
+
+        # this is a bit of magic, the idea is that if we clone into a new
+        # release and we are on it already we do not want to remove
+        # packages because they are probably new defaults pkgs. If however
+        # we are not yet on the new release its fine to remove installed
+        # pkgs as part of the upgrade
+        import lsb_release
+        if (new_distro and 
+            new_distro == lsb_relase.get_lsb_information()["CODENAME"]):
+            protect_installed = True
+        else:
+            protect_installed = False
+
         if args.simulate:
             miss = clone.simulate_restore_state(
                 args.source, args.new_distro_codename)
             print "missing: %s" % ",".join(sorted(list(miss)))
         else:
             clone.restore_state(
-                args.source, args.destination, args.new_distro_codename)
+                args.source, args.destination, args.new_distro_codename, protect_installed)
         
