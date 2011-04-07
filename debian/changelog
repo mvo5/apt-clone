@@ -1,4 +1,4 @@
-apt-clone (0.1.4) UNRELEASED; urgency=low
+apt-clone (0.1.4) natty; urgency=low
 
   * apt_clone.py:
     - add apt::architecture to the state file
