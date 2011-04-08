@@ -24,7 +24,6 @@ import glob
 import os
 import shutil
 import subprocess
-import sys
 import tarfile
 import tempfile
 import time
@@ -112,10 +111,8 @@ class AptClone(object):
             repositories ...) into the apt-state.tar.gz file in targetdir
         """
         if os.path.isdir(target):
-            targetdir = target
             target = os.path.join(target, self.CLONE_FILENAME)
         else:
-            targetdir = os.path.dirname(target)
             if not target.endswith(".tar.gz"):
                 target += ".apt-clone.tar.gz"
 
