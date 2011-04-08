@@ -1,3 +1,10 @@
+apt-clone (0.1.5) UNRELEASED; urgency=low
+
+  * apt-clone:
+    - Fix a typo that was causing restore-new-distro to crash.
+
+ -- Evan Dandrea <ev@ubuntu.com>  Fri, 08 Apr 2011 14:12:28 +0100
+
 apt-clone (0.1.4) natty; urgency=low
 
   * apt_clone.py:
