@@ -97,7 +97,7 @@ if __name__ == "__main__":
         # we are not yet on the new release its fine to remove installed
         # pkgs as part of the upgrade
         import lsb_release
-        codename = lsb_relase.get_lsb_information()["CODENAME"]
+        codename = lsb_release.get_lsb_information()["CODENAME"]
         if (args.new_distro_codename and args.new_distro_codename == codename):
             protect_installed = True
         else:
