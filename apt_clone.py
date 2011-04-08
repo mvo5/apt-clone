@@ -355,7 +355,7 @@ class AptClone(object):
         tar = tarfile.open(statefile)
         f = tar.extractfile("./var/lib/apt-clone/installed.pkgs")
         for line in f.readlines():
-            actiongroup = cache.actiongroup()
+            cache.actiongroup()
             line = line.strip()
             if line.startswith("#") or line == "":
                 continue
