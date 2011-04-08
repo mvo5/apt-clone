@@ -2,6 +2,7 @@
 all: test
 
 test:
+	pyflakes ../apt-clone ../apt_clone.py
 	set -e; for f in *.py; do \
 		PYTHONPATH=.. python $$f; \
 	done; \

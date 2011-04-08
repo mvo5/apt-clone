@@ -3,6 +3,7 @@ apt-clone (0.1.5) UNRELEASED; urgency=low
   * apt-clone:
     - Fix a typo that was causing restore-new-distro to crash.
   * Fix some errors and unused variables found using pyflakes.
+  * Add pyflakes to make test.
 
  -- Evan Dandrea <ev@ubuntu.com>  Fri, 08 Apr 2011 14:12:28 +0100
 
