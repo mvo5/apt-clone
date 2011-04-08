@@ -354,8 +354,11 @@ class AptClone(object):
         # get the installed.pkgs data
         tar = tarfile.open(statefile)
         f = tar.extractfile("./var/lib/apt-clone/installed.pkgs")
+        # keep this var even if pyflakes complains its unused
+        # its something like a contextmanager for libapt and will
+        # speed up the following loop
+        actiongroup = cache.actiongroup():
         for line in f.readlines():
-            cache.actiongroup()
             line = line.strip()
             if line.startswith("#") or line == "":
                 continue
