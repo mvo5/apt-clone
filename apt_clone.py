@@ -357,30 +357,30 @@ class AptClone(object):
         # keep this var even if pyflakes complains its unused
         # its something like a contextmanager for libapt and will
         # speed up the following loop
-        actiongroup = cache.actiongroup():
-        for line in f.readlines():
-            line = line.strip()
-            if line.startswith("#") or line == "":
-                continue
-            (name, version, auto) = line.split()
-            pkgs.add(name)
-            auto_installed = int(auto)
-            from_user = not auto_installed
-            if name in cache:
-                try:
-                    if protect_installed:
-                        cache[name].mark_install(from_user=from_user, auto_fix=False)
-                        if cache.broken_count > 0:
-                            resolver.resolve()
-                            if not cache[name].marked_install:
-                                raise SystemError, "pkg %s not marked upgrade" % name
-                    else:
-                        cache[name].mark_install(from_user=from_user)
-                except SystemError:
-                    logging.warn("can't add %s" % name)
-                    missing.add(name)
-                # ensure the auto install info is 
-                cache[name].mark_auto(auto_installed)
+        with cache.actiongroup():
+            for line in f.readlines():
+                line = line.strip()
+                if line.startswith("#") or line == "":
+                    continue
+                (name, version, auto) = line.split()
+                pkgs.add(name)
+                auto_installed = int(auto)
+                from_user = not auto_installed
+                if name in cache:
+                    try:
+                        if protect_installed:
+                            cache[name].mark_install(from_user=from_user, auto_fix=False)
+                            if cache.broken_count > 0:
+                                resolver.resolve()
+                                if not cache[name].marked_install:
+                                    raise SystemError, "pkg %s not marked upgrade" % name
+                        else:
+                            cache[name].mark_install(from_user=from_user)
+                    except SystemError:
+                        logging.warn("can't add %s" % name)
+                        missing.add(name)
+                    # ensure the auto install info is 
+                    cache[name].mark_auto(auto_installed)
         # check what is broken and try to fix
         if cache.broken_count > 0:
             resolver.resolve()
