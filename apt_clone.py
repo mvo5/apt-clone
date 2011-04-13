@@ -141,7 +141,7 @@ class AptClone(object):
         host_info = { 'hostname'   : os.uname()[1],
                        'kernel'     : os.uname()[2],
                        'uname_arch' : os.uname()[4],
-                       'arch'       : apt_pkg.config.Find("APT::Architecture")
+                       'arch'       : apt_pkg.config.find("APT::Architecture")
                      }
         # save it
         f = tempfile.NamedTemporaryFile()
