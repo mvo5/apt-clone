@@ -82,6 +82,8 @@ class AptClone(object):
         for the obsolete ones.
     """
     CLONE_FILENAME = "apt-clone-state-%s.tar.gz" % os.uname()[1]
+
+    TARPREFIX = "./"
     
     def __init__(self, fetch_progress=None, install_progress=None,
                  cache_cls=None):
@@ -216,11 +218,19 @@ class AptClone(object):
         shutil.rmtree(tdir)
         #print tdir
 
+    # detect prefix
+    def _detect_tarprefix(self, tar):
+        if tar.getnames()[0].startswith("./"):
+            self.TARPREFIX = "./"
+        else:
+            self.TARPREFIX = ""
+
     # info
     def info(self, statefile):
         tar = tarfile.open(statefile)
+        self._detect_tarprefix(tar)
         # guess distro infos
-        f = tar.extractfile("./etc/apt/sources.list")
+        f = tar.extractfile(self.TARPREFIX+"etc/apt/sources.list")
         distro = "unknown"
         for line in f.readlines():
             if line.startswith("#") or line.strip() == "":
@@ -230,7 +240,7 @@ class AptClone(object):
                 distro = l[2]
                 break
         # nr installed
-        f = tar.extractfile("./var/lib/apt-clone/installed.pkgs")
+        f = tar.extractfile(self.TARPREFIX+"var/lib/apt-clone/installed.pkgs")
         installed = autoinstalled = 0
         meta = []
         for line in f.readlines():
@@ -241,13 +251,13 @@ class AptClone(object):
             if name.endswith("-desktop"):
                 meta.append(name)
         # date
-        m = tar.getmember("./var/lib/apt-clone/installed.pkgs")
+        m = tar.getmember(self.TARPREFIX+"var/lib/apt-clone/installed.pkgs")
         date = m.mtime
         # check hostname (if found)
         hostname = "unknown"
         arch = "unknown"
-        if "./var/lib/apt-clone/uname" in tar.getnames():
-            info = tar.extractfile("./var/lib/apt-clone/uname").read()
+        if self.TARPREFIX+"var/lib/apt-clone/uname" in tar.getnames():
+            info = tar.extractfile(self.TARPREFIX+"var/lib/apt-clone/uname").read()
             section = apt_pkg.TagSection(info)
             hostname = section.get("hostname", "unknown")
             arch = section.get("arch", "unknown")
@@ -273,6 +283,10 @@ class AptClone(object):
         """
         if targetdir != "/":
             apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
+
+        # detect prefix
+        tar = tarfile.open(statefile)
+        self._detect_tarprefix(tar)
 
         if not os.path.exists(targetdir):
             print "Dir '%s' does not exist, need to bootstrap first" % targetdir
@@ -317,9 +331,9 @@ class AptClone(object):
         existing = os.path.join(targetdir, "etc", "apt", "sources.list")
         if os.path.exists(existing):
             shutil.copy(existing, '%s.apt-clone' % existing)
-        tar.extract("./etc/apt/sources.list", targetdir)
+        tar.extract(self.TARPREFIX+"etc/apt/sources.list", targetdir)
         try:
-            tar.extract("./etc/apt/sources.list.d", targetdir)
+            tar.extract(self.TARPREFIX+"etc/apt/sources.list.d", targetdir)
         except KeyError:
             pass
 
@@ -330,11 +344,11 @@ class AptClone(object):
             shutil.copy(existing, backup)
         tar = tarfile.open(statefile)
         try:
-            tar.extract("./etc/apt/trusted.gpg", targetdir)
+            tar.extract(self.TARPREFIX+"etc/apt/trusted.gpg", targetdir)
         except KeyError:
             pass
         try:
-            tar.extract("./etc/apt/trusted.gpg.d", targetdir)
+            tar.extract(self.TARPREFIX+"etc/apt/trusted.gpg.d", targetdir)
         except KeyError:
             pass
         if os.path.exists(backup):
@@ -353,7 +367,7 @@ class AptClone(object):
                     resolver.protect(pkg._pkg)
         # get the installed.pkgs data
         tar = tarfile.open(statefile)
-        f = tar.extractfile("./var/lib/apt-clone/installed.pkgs")
+        f = tar.extractfile(self.TARPREFIX+"var/lib/apt-clone/installed.pkgs")
         # the actiongroup will help libapt to speed up the following loop
         with cache.actiongroup():
             for line in f.readlines():
@@ -366,6 +380,7 @@ class AptClone(object):
                 from_user = not auto_installed
                 if name in cache:
                     try:
+                        # special mode, most useful for release-upgrades
                         if protect_installed:
                             cache[name].mark_install(from_user=from_user, auto_fix=False)
                             if cache.broken_count > 0:
@@ -373,9 +388,10 @@ class AptClone(object):
                                 if not cache[name].marked_install:
                                     raise SystemError, "pkg %s not marked upgrade" % name
                         else:
-                            cache[name].mark_install(from_user=from_user)
-                    except SystemError:
-                        logging.warn("can't add %s" % name)
+                            # normal mode, this assume the system is consistent
+                            cache[name].mark_install(from_user=from_user, auto_fix=False, auto_inst=False)
+                    except SystemError as e:
+                        logging.warn("can't add %s (%s)" % (name, e))
                         missing.add(name)
                     # ensure the auto install info is 
                     cache[name].mark_auto(auto_installed)
@@ -408,7 +424,7 @@ class AptClone(object):
     def _restore_not_downloadable_debs(self, statefile, targetdir):
         tar = tarfile.open(statefile)
         try:
-            tar.extract("./var/lib/apt-clone/debs", targetdir)
+            tar.extract(self.TARPREFIX+"var/lib/apt-clone/debs", targetdir)
         except KeyError:
             return
         debs = []
