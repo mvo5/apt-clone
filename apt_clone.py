@@ -226,12 +226,12 @@ class AptClone(object):
             self.TARPREFIX = ""
 
     # info
-    def info(self, statefile):
+    def _get_info_distro(self, statefile):
         tar = tarfile.open(statefile)
         self._detect_tarprefix(tar)
         # guess distro infos
         f = tar.extractfile(self.TARPREFIX+"etc/apt/sources.list")
-        distro = "unknown"
+        distro = None
         for line in f.readlines():
             if line.startswith("#") or line.strip() == "":
                 continue
@@ -239,7 +239,11 @@ class AptClone(object):
             if len(l) > 2 and not l[2].endswith("/"):
                 distro = l[2]
                 break
+        return distro
+    def info(self, statefile):
+        distro = self._get_info_distro(statefile) or "unknown"
         # nr installed
+        tar = tarfile.open(statefile)
         f = tar.extractfile(self.TARPREFIX+"var/lib/apt-clone/installed.pkgs")
         installed = autoinstalled = 0
         meta = []
@@ -290,7 +294,8 @@ class AptClone(object):
 
         if not os.path.exists(targetdir):
             print "Dir '%s' does not exist, need to bootstrap first" % targetdir
-            self.commands.debootstrap(targetdir)
+            distro = self._get_info_distro(statefile)
+            self.commands.debootstrap(targetdir, distro)
 
         self._restore_sources_list(statefile, targetdir)
         self._restore_apt_keyring(statefile, targetdir)
@@ -389,7 +394,7 @@ class AptClone(object):
                                     raise SystemError, "pkg %s not marked upgrade" % name
                         else:
                             # normal mode, this assume the system is consistent
-                            cache[name].mark_install(from_user=from_user, auto_fix=False, auto_inst=False)
+                            cache[name].mark_install(from_user=from_user)
                     except SystemError as e:
                         logging.warn("can't add %s (%s)" % (name, e))
                         missing.add(name)
