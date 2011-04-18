@@ -21,6 +21,7 @@ from apt.cache import FetchFailedException
 import apt_pkg
 import logging
 import glob
+import hashlib
 import os
 import shutil
 import subprocess
@@ -481,3 +482,36 @@ class AptClone(object):
                 entry.disabled = True
         sources.save()
 
+
+    def _find_modified_conffiles(self, sourcedir="/"):
+        dpkg_status = sourcedir+apt_pkg.config.find("Dir::State::status")
+        modified = set()
+        # iterate dpkg-status file
+        tag = apt_pkg.TagFile(open(dpkg_status))
+        for entry in tag:
+            if "conffiles" in entry:
+                for line in entry["conffiles"].split("\n"):
+                    obsolete = None
+                    if len(line.split()) == 3:
+                        name, md5sum, obsolete = line.split()
+                    else:
+                        name, md5sum = line.split()
+                    # update
+                    path = sourcedir+name
+                    md5sum = md5sum.strip()
+                    # ignore oboslete conffiles
+                    if obsolete == "obsolete":
+                        continue
+                    # user removed conffile
+                    if not os.path.exists(path):
+                        logging.debug("conffile %s removed" % path)
+                        modified.add(path)
+                        continue
+                    # check content
+                    md5 = hashlib.md5()
+                    md5.update(open(path).read())
+                    if md5.hexdigest() != md5sum:
+                        logging.debug("conffile %s (%s != %s)" % (
+                                path, md5.hexdigest(), md5sum))
+                        modified.add(path)
+        return modified

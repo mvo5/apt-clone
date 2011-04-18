@@ -6,6 +6,8 @@ apt-clone (0.2) UNRELEASED; urgency=lowbv
     - when runing in normal restore mode, use disable auto_inst and 
       auto_fix until everything is installed, this assume the clone
       is consistent
+  * apt_clone.py, tests/test_clone.py: 
+    - add _find_modified_conffiles helper and test for that
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Apr 2011 17:38:14 +0200
 

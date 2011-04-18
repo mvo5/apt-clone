@@ -128,5 +128,12 @@ class TestClone(unittest.TestCase):
         # FIXME: check that the stuff in missing is ok
         print missing
 
+    def test_modfied_conffiles(self):
+        clone = AptClone()
+        modified = clone._find_modified_conffiles("./data/mock-system")
+        self.assertEqual(
+            modified, set(["./data/mock-system/etc/conffile.modified"]))
+        
+
 if __name__ == "__main__":
     unittest.main()

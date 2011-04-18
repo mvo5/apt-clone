@@ -6,6 +6,9 @@ Installed-Size: 108
 Maintainer: Ubuntu MOTU Developers <ubuntu-motu@lists.ubuntu.com>
 Architecture: all
 Version: 0.5-3
+Conffiles:
+ /etc/conffile.modified deadbeefcd98f00b204e9800998ecf8427e
+ /etc/conffile.not-modified d41d8cd98f00b204e9800998ecf8427e
 Description: perl script to convert an addressbook to VCARD file format
  2vcard is a little perl script that you can use to convert the
  popular vcard file format. Currently 2vcard can only convert addressbooks
