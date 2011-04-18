@@ -515,3 +515,16 @@ class AptClone(object):
                                 path, md5.hexdigest(), md5sum))
                         modified.add(path)
         return modified
+
+    def _dump_debconf_database(self, sourcedir):
+        print "not implemented yet"
+        # debconf-copydb configdb newdb --config=Name:newdb --config=Driver:File --config=Filename:/tmp/lala.db
+        # 
+        # debconf-copydb newdb configdb --config=Name:newdb --config=Driver:File --config=Filename:/tmp/lala.db
+        # 
+        # dump to text with:
+        #  debconf-copydb configdb pipe --config=Name:pipe
+        #                 --config=Driver:Pipe --config=InFd:none
+        # 
+        # restore from text with:
+        #   ssh remotehost debconf-copydb pipe configdb --config=Name:pipe --config=Driver:Pipe
