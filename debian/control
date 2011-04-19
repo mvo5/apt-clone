@@ -4,9 +4,9 @@ Priority: extra
 Maintainer: Michael Vogt <michael.vogt@ubuntu.com>
 Uploaders: Alessio Treglia <alessio@debian.org>
 Build-Depends: debhelper (>= 7.0.8~),
-               python-all (>= 2.6.6-3~),
                gettext,
                intltool,
+               python-all (>= 2.6.6-3~)
 Standards-Version: 3.9.1
 Vcs-Bzr: http://bzr.debian.org/collab-maint/apt-clone/sid/
 Vcs-Browser: http://bzr.debian.org/loggerhead/collab-maint/apt-clone/sid/
@@ -17,7 +17,7 @@ Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
          lsb-release,
-	 python-apt 
+         python-apt 
 Recommends: dpkg-repack
 Description: Script to create state bundles
  This package can be used to clone/restore the packages on a apt based
