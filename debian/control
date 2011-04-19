@@ -8,7 +8,8 @@ Build-Depends: debhelper (>= 7.0.8~),
                gettext,
                intltool,
 Standards-Version: 3.9.1
-Vcs-Bzr: https://code.launchpad.net/~mvo/apt-clone/trunk
+Vcs-Bzr: http://bzr.debian.org/collab-maint/apt-clone/sid/
+Vcs-Browser: http://bzr.debian.org/loggerhead/collab-maint/apt-clone/sid/
 Homepage: https://launchpad.net/apt-clone
 
 Package: apt-clone
