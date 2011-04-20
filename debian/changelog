@@ -1,4 +1,4 @@
-apt-clone (0.2) UNRELEASED; urgency=lowbv
+apt-clone (0.2) UNRELEASED; urgency=low
 
   * apt_clone.py:
     - maverick tarfile seems to cut off the "./" of the path, auto
