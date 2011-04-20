@@ -38,6 +38,8 @@ if __name__ == "__main__":
         "clone", 
         help="create a clone-file from <source> (usually '/') to <destination>")
     command.add_argument("--source", default="/")
+    command.add_argument("--target", default=None,
+                         help="assume no Internet and specify a target filesystem to consider against")
     command.add_argument("destination")
     command.add_argument("--with-dpkg-repack", 
                          action="store_true", default=False,
@@ -81,7 +83,7 @@ if __name__ == "__main__":
         print info
     if args.command == "clone":
         clone.save_state(args.source, args.destination, 
-                         args.with_dpkg_repack, args.with_dpkg_status)
+                         args.with_dpkg_repack, args.with_dpkg_status, args.target)
         print "not installable: %s" % ", ".join(clone.not_downloadable)
         print "version mismatch: %s" % ", ".join(clone.version_mismatch)
     elif args.command == "restore":

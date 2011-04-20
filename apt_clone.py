@@ -51,11 +51,11 @@ class LowLevelCommands(object):
         ret = subprocess.call(install_cmd + debfiles)
         return (ret == 0)
         
-    def repack_deb(self, pkgname, targetdir):
+    def repack_deb(self, pkgname, targetdir, rootdir):
         """ dpkg-repack pkgname into targetdir """
         if not os.path.exists(self.dpkg_repack):
             raise IOError("no '%s' found" % self.dpkg_repack)
-        repack_cmd = [self.dpkg_repack]
+        repack_cmd = [self.dpkg_repack, '--root=%s' % rootdir]
         if not os.getuid() == 0:
             if not os.path.exists("/usr/bin/fakeroot"):
                 return
@@ -89,6 +89,7 @@ class AptClone(object):
     def __init__(self, fetch_progress=None, install_progress=None,
                  cache_cls=None):
         self.not_downloadable = set()
+        self.not_retrievable = set()
         self.version_mismatch = set()
         self.commands = LowLevelCommands()
         # fetch
@@ -109,7 +110,8 @@ class AptClone(object):
 
     # save
     def save_state(self, sourcedir, target, 
-                   with_dpkg_repack=False, with_dpkg_status=False):
+                   with_dpkg_repack=False, with_dpkg_status=False,
+                   targetdir=None):
         """ save the current system state (installed pacakges, enabled
             repositories ...) into the apt-state.tar.gz file in targetdir
         """
@@ -129,6 +131,8 @@ class AptClone(object):
         tar = tarfile.open(name=target, mode="w:gz")
         self._write_uname(tar)
         self._write_state_installed_pkgs(sourcedir, tar)
+        if targetdir is not None:
+            self._write_state_not_retrievable(sourcedir, targetdir)
         self._write_state_auto_installed(tar)
         self._write_state_sources_list(tar)
         self._write_state_apt_preferences(tar)
@@ -136,7 +140,7 @@ class AptClone(object):
         if with_dpkg_status:
             self._write_state_dpkg_status(tar)
         if with_dpkg_repack:
-            self._dpkg_repack(tar)
+            self._dpkg_repack(tar, sourcedir)
         tar.close()
 
     def _write_uname(self, tar):
@@ -211,10 +215,19 @@ class AptClone(object):
         if os.path.exists(source_parts):
             tar.add(source_parts, arcname="./etc/apt/sources.list.d")
 
-    def _dpkg_repack(self, tar):
-        tdir = tempfile.mkdtemp()
+    def _write_state_not_retrievable(self, sourcedir, targetdir):
+        source_cache = self._cache_cls(rootdir=sourcedir)
+        target_cache = apt.Cache(rootdir=targetdir)
+        src_pkgs = set([pkg.name for pkg in source_cache if pkg.is_installed])
+        dst_pkgs = set([pkg.name for pkg in target_cache if pkg.is_installed])
+        self.not_retrievable = src_pkgs - dst_pkgs
+
+    def _dpkg_repack(self, tar, rootdir):
+        tdir = tempfile.mkdtemp(prefix='%s/tmp' % rootdir)
+        for pkgname in self.not_retrievable:
+            self.commands.repack_deb(pkgname, tdir, rootdir)
         for pkgname in self.not_downloadable:
-            self.commands.repack_deb(pkgname, tdir)
+            self.commands.repack_deb(pkgname, tdir, rootdir)
         tar.add(tdir, arcname="./var/lib/apt-clone/debs")
         shutil.rmtree(tdir)
         #print tdir
@@ -229,9 +242,8 @@ class AptClone(object):
     # info
     def _get_info_distro(self, statefile):
         tar = tarfile.open(statefile)
-        self._detect_tarprefix(tar)
         # guess distro infos
-        f = tar.extractfile(self.TARPREFIX+"etc/apt/sources.list")
+        self._detect_tarprefix(tar)
         distro = None
         for line in f.readlines():
             if line.startswith("#") or line.strip() == "":
@@ -373,7 +385,7 @@ class AptClone(object):
                     resolver.protect(pkg._pkg)
         # get the installed.pkgs data
         tar = tarfile.open(statefile)
-        f = tar.extractfile(self.TARPREFIX+"var/lib/apt-clone/installed.pkgs")
+        f = tar.extractfile("./var/lib/apt-clone/installed.pkgs")
         # the actiongroup will help libapt to speed up the following loop
         with cache.actiongroup():
             for line in f.readlines():
