@@ -17,7 +17,8 @@ Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
          lsb-release,
-         python-apt 
+         python-apt,
+         python-argparse
 Recommends: dpkg-repack
 Description: Script to create state bundles
  This package can be used to clone/restore the packages on a apt based
