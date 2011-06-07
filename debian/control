@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 7.0.8~),
                gettext,
                intltool,
                python-all (>= 2.6.6-3~)
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Vcs-Bzr: http://bzr.debian.org/collab-maint/apt-clone/sid/
 Vcs-Browser: http://bzr.debian.org/loggerhead/collab-maint/apt-clone/sid/
 Homepage: https://launchpad.net/apt-clone
