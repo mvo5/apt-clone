@@ -1,0 +1,64 @@
+.TH "APT\-CLONE" "1" "13 June 2011" "APT\-CLONE" "APT"
+.SH "NAME"
+apt-clone \- Helper script to clone a existing setup
+.SH "SYNOPSIS"
+.B apt-clone
+.RB [ \-h ]
+.RB [ \-\-debug ]
+.R {info | restore | clone | restore\-new\-distro}
+.SH "DESCRIPTION"
+.B apt-clone
+is a tool to clone/restore packages information of a Debian system. It can be
+used to clone/restore the packages on a apt based system. It will save/restore
+the packages, sources.list, keyring and automatic-installed states. It can
+also save/restore no longer downloadable packages using dpkg\-repack.
+.PP
+Unless the \-h, or \-\-help option is given, one of the commands below must be
+present:
+.PP
+info
+.RS 4
+shows information about a apt-clone archive.
+.RE
+.PP
+restore
+.RS 4
+restore a clone\-file from
+.RI < source >
+to
+.RI < destination >
+(usually /).
+.RE
+.PP
+clone
+.RS 4
+clone is used to create a clone\-file from
+.RI < source >
+(usually /) to
+.RI < destination >.
+.RE
+.PP
+restore\-new\-distro
+.RS 4
+restore a clone file from
+.RI < source >
+to
+.RI < destination >
+and try upgrading along the way. This can be used so that the current
+release is cloned, a new install is done and then the old clone is installed.
+.RE
+.SH "OPTIONS"
+.PP
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-\-debug\fR
+enable debug output
+.SH "SEE ALSO"
+\fBdpkg\-repack\fR(1)
+.SH "AUTHORS"
+apt-clone was written by \fBMichael Vogt <michael.vogt@ubuntu.com>\fR.
+.PP
+This manual page was written by \fBAlessio Treglia <alessio@debian.org>\fR,
+for the Debian project (and may be used by others).
