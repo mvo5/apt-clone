@@ -36,8 +36,9 @@ if __name__ == "__main__":
     # clone
     command = subparser.add_parser(
         "clone", 
-        help="create a clone-file from <source> (usually '/') to <destination>")
-    command.add_argument("--source", default="/")
+        help="create a clone-file into <destination>. A alternative source dir can be specified with --source.")
+    command.add_argument("--source", default="/",
+                         help="The source dir of the system or chroot, usually '/'") 
     command.add_argument("destination")
     command.add_argument("--with-dpkg-repack", 
                          action="store_true", default=False,
@@ -49,7 +50,7 @@ if __name__ == "__main__":
     # restore
     command = subparser.add_parser(
         "restore",
-        help="restore a clone file from <source> to <destination> (usually '/')")
+        help="restore a clone file from <source>. A alternative destination can be given with --destination.")
     command.add_argument("source")
     command.add_argument("--destination", default="/")
     command.add_argument("--simulate", action="store_true", default=False)
@@ -84,6 +85,9 @@ if __name__ == "__main__":
                          args.with_dpkg_repack, args.with_dpkg_status)
         print "not installable: %s" % ", ".join(clone.not_downloadable)
         print "version mismatch: %s" % ", ".join(clone.version_mismatch)
+        if not args.with_dpkg_repack:
+            print "\nNote that you can use --with-dpkg-repack to include "\
+                  "those packges in the clone file."
     elif args.command == "restore":
         if args.simulate:
             miss = clone.simulate_restore_state(args.source)
