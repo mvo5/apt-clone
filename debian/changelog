@@ -3,6 +3,8 @@ apt-clone (0.2.1) UNRELEASED; urgency=low
   * apt-clone:
     - improve --help output (closes: #641864), thanks to
       Rogerio. Brito
+  * apt-clone.8:
+    - add simple man page
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 19 Sep 2011 10:01:58 +0200
 

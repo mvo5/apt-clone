@@ -1,0 +1,36 @@
+.TH APT-CLONE "8" "September 2011" "apt-clone 0.2" "User Commands"
+.SH NAME
+apt-clone \- manual page for apt-clone 0.2
+.SH DESCRIPTION
+usage: apt\-clone [\-h] [\-\-debug] {info,clone,restore,restore\-new\-distro} ...
+.PP
+Clone/restore package info of a debian based system or chroot environment.
+.SS "optional arguments:"
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show help message for apt-clone. Alternatively --help will output
+command specific help for any of the {info,clone,restore,restore\-new\-distro}
+commands.
+.TP
+\fB\-\-debug\fR
+enable debug output
+.SS "Commands:"
+.IP
+{info,clone,restore,restore\-new\-distro}
+.TP
+info
+Shoe info about a apt\-clone archive.
+.TP
+clone
+Create a clone\-file into <destination>. A alternative
+source dir can be specified with \fB\-\-source\fR.
+.TP
+restore
+Restore a clone file from <source>. A alternative
+destination can be given with \fB\-\-destination\fR.
+.TP
+restore\-new\-distro
+Restore a clone file from <source> to <destination>
+and try upgrading along the way. this can be used so
+that the current release is cloned, a new install is
+done and then the old clone is installed.
