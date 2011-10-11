@@ -135,6 +135,7 @@ class TestClone(unittest.TestCase):
             modified, set(["./data/mock-system/etc/conffile.modified"]))
 
     def test_unowned_in_etc(self):
+        # test in mock environement
         apt_pkg.config.set(
             "Dir::state::status", 
             "./data/mock-system/var/lib/dpkg/status")
@@ -143,8 +144,18 @@ class TestClone(unittest.TestCase):
         self.assertFalse("/etc/conffile.modified" in unowned)
         self.assertFalse("/etc/conffile.not-modified" in unowned)
         self.assertTrue("/etc/unowned-file" in unowned)
-
-
+        # test on the real system and do very light checks
+        apt_pkg.config.set(
+            "Dir::state::status", 
+            "/var/lib/dpkg/status")
+        unowned = clone._find_unowned_in_etc()
+        #print unowned
+        self.assertNotEqual(unowned, set())
+        # negative test, is created by the installer
+        self.assertTrue("/etc/apt/sources.list" in unowned)
+        # postivie test, belongs to base-files
+        self.assertFalse("/etc/issue" in unowned)
+        print "\n".join(sorted(unowned))
 
 if __name__ == "__main__":
     unittest.main()

@@ -489,8 +489,11 @@ class AptClone(object):
                 entry.disabled = True
         sources.save()
 
-    def _find_unowned_in_etc(self, sourcedir="/"):
-        etcdir = os.path.join(sourcedir, "etc")
+    def _find_unowned_in_etc(self, sourcedir=""):
+        if sourcedir:
+            etcdir = os.path.join(sourcedir, "etc")
+        else:
+            etcdir = "/etc"
         # get all the files that dpkg "owns"
         owned = set()
         dpkg_basedir = os.path.dirname(apt_pkg.config.get("Dir::State::status"))
