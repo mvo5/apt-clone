@@ -212,10 +212,8 @@ class AptClone(object):
             tar.add(source_parts, arcname="./etc/apt/sources.list.d")
 
     def _write_modified_files_from_etc(self, tar):
-        etcdir = os.path.join(apt_pkg.config.get("Dir"), "etc")
-        
-        
-
+        #etcdir = os.path.join(apt_pkg.config.get("Dir"), "etc")
+        pass
 
     def _dpkg_repack(self, tar):
         tdir = tempfile.mkdtemp()

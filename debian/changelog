@@ -8,7 +8,7 @@ apt-clone (0.2.1) UNRELEASED; urgency=low
   * apt_clone.py:
     - fix tar prefix detection
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 19 Sep 2011 10:01:58 +0200
+ -- Michael Vogt <mvo@debian.org>  Wed, 19 Oct 2011 14:20:16 +0200
 
 apt-clone (0.2) unstable; urgency=low
 
