@@ -1,3 +1,15 @@
+apt-clone (0.2.1) UNRELEASED; urgency=low
+
+  * apt-clone:
+    - improve --help output (closes: #641864), thanks to
+      Rogerio. Brito
+  * apt-clone.8:
+    - add simple man page
+  * apt_clone.py:
+    - fix tar prefix detection
+
+ -- Michael Vogt <mvo@debian.org>  Wed, 19 Oct 2011 14:20:16 +0200
+
 apt-clone (0.2) unstable; urgency=low
 
   * Initial release (Closes: #622868).

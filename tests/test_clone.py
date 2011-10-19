@@ -115,7 +115,7 @@ class TestClone(unittest.TestCase):
         clone = AptClone()
         missing = clone.simulate_restore_state("./data/apt-state.tar.gz")
         # missing, because clone does not have universe enabled
-        self.assertEqual(list(missing), ["accerciser"])
+        self.assertEqual(list(missing), ["accerciser", "acpi-support"])
 
     def test_restore_state_simulate_with_new_release(self):
         #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
@@ -128,12 +128,34 @@ class TestClone(unittest.TestCase):
         # FIXME: check that the stuff in missing is ok
         print missing
 
-    def test_modfied_conffiles(self):
+    def test_modified_conffiles(self):
         clone = AptClone()
         modified = clone._find_modified_conffiles("./data/mock-system")
         self.assertEqual(
             modified, set(["./data/mock-system/etc/conffile.modified"]))
-        
+
+    def test_unowned_in_etc(self):
+        # test in mock environement
+        apt_pkg.config.set(
+            "Dir::state::status", 
+            "./data/mock-system/var/lib/dpkg/status")
+        clone = AptClone()
+        unowned = clone._find_unowned_in_etc("./data/mock-system")
+        self.assertFalse("/etc/conffile.modified" in unowned)
+        self.assertFalse("/etc/conffile.not-modified" in unowned)
+        self.assertTrue("/etc/unowned-file" in unowned)
+        # test on the real system and do very light checks
+        apt_pkg.config.set(
+            "Dir::state::status", 
+            "/var/lib/dpkg/status")
+        unowned = clone._find_unowned_in_etc()
+        #print unowned
+        self.assertNotEqual(unowned, set())
+        # negative test, is created by the installer
+        self.assertTrue("/etc/apt/sources.list" in unowned)
+        # postivie test, belongs to base-files
+        self.assertFalse("/etc/issue" in unowned)
+        print "\n".join(sorted(unowned))
 
 if __name__ == "__main__":
     unittest.main()

@@ -211,6 +211,10 @@ class AptClone(object):
         if os.path.exists(source_parts):
             tar.add(source_parts, arcname="./etc/apt/sources.list.d")
 
+    def _write_modified_files_from_etc(self, tar):
+        #etcdir = os.path.join(apt_pkg.config.get("Dir"), "etc")
+        pass
+
     def _dpkg_repack(self, tar):
         tdir = tempfile.mkdtemp()
         for pkgname in self.not_downloadable:
@@ -221,7 +225,8 @@ class AptClone(object):
 
     # detect prefix
     def _detect_tarprefix(self, tar):
-        if tar.getnames()[0].startswith("./"):
+        print tar.getnames()
+        if tar.getnames()[-1].startswith("./"):
             self.TARPREFIX = "./"
         else:
             self.TARPREFIX = ""
@@ -482,6 +487,26 @@ class AptClone(object):
                 entry.disabled = True
         sources.save()
 
+    def _find_unowned_in_etc(self, sourcedir=""):
+        if sourcedir:
+            etcdir = os.path.join(sourcedir, "etc")
+        else:
+            etcdir = "/etc"
+        # get all the files that dpkg "owns"
+        owned = set()
+        dpkg_basedir = os.path.dirname(apt_pkg.config.get("Dir::State::status"))
+        for f in glob.glob(os.path.join(dpkg_basedir, "info", "*.list")):
+            for line in open(f):
+                if line.startswith("/etc/"):
+                    owned.add(line.strip())
+        # now go over etc
+        unowned = set()
+        for dirpath, dirnames, filenames in os.walk(etcdir):
+            for name in filenames:
+                fullname = os.path.join(dirpath[len(sourcedir):], name)
+                if not fullname in owned:
+                    unowned.add(fullname)
+        return unowned
 
     def _find_modified_conffiles(self, sourcedir="/"):
         dpkg_status = sourcedir+apt_pkg.config.find("Dir::State::status")

@@ -2,3 +2,5 @@
 /usr
 /usr/bin
 /usr/bin/2vcard
+/etc/conffile.modified
+/etc/conffile.not-modified
