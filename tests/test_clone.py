@@ -85,6 +85,19 @@ class TestClone(unittest.TestCase):
             os.path.exists(os.path.join(targetdir, "etc","apt","sources.list")))
 
     @mock.patch("apt_clone.LowLevelCommands")
+    def test_restore_state_with_not_downloadable_debs(self, mock_lowlevel):
+        # setup mock
+        mock_lowlevel.install_debs.return_value = True
+        targetdir = self.tempdir
+        # test
+        clone = AptClone(cache_cls=MockAptCache)
+        clone.restore_state(
+            "./data/apt-state_with_not_downloadable_debs.tar.gz", targetdir)
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(targetdir, "var", "lib", "apt-clone", "debs", "foo.deb")))
+
+    @mock.patch("apt_clone.LowLevelCommands")
     def test_restore_state_on_new_distro_release_livecd(self, mock_lowlevel):
         """ 
         test lucid -> maverick apt-clone-ugprade as if it will be used
@@ -115,7 +128,7 @@ class TestClone(unittest.TestCase):
         clone = AptClone()
         missing = clone.simulate_restore_state("./data/apt-state.tar.gz")
         # missing, because clone does not have universe enabled
-        self.assertEqual(list(missing), ["accerciser", "acpi-support"])
+        self.assertEqual(list(missing), ["accerciser"])
 
     def test_restore_state_simulate_with_new_release(self):
         #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
