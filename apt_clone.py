@@ -435,7 +435,8 @@ class AptClone(object):
     def _restore_not_downloadable_debs(self, statefile, targetdir):
         tar = tarfile.open(statefile)
         try:
-            tar.extract(self.TARPREFIX+"var/lib/apt-clone/debs", targetdir)
+            debsdir = [ tarinfo for tarinfo in tar.getmembers() if tarinfo.name.startswith(self.TARPREFIX+"var/lib/apt-clone/debs/")]
+            tar.extractall(targetdir,debsdir)
         except KeyError:
             return
         debs = []
