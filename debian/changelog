@@ -2,6 +2,8 @@ apt-clone (0.2.2) UNRELEASED; urgency=low
 
   * fix extraction of no-longer downloadable debs, thanks
     to Gaurav Saxena for the patch! (closes: #637247)
+  * fix python-argparse dependency, thanks to Adrian Bunk
+    (closes: Bug#653517)
 
  -- Michael Vogt <mvo@debian.org>  Tue, 08 Nov 2011 12:37:18 +0100
 
