@@ -75,6 +75,15 @@ class LowLevelCommands(object):
                                'add', fromkeyfile])
         return (ret == 0)
 
+    def bind_mount(self, olddir, newdir):
+        ret = subprocess.call(["mount", "--bind", oldir, newdir])
+        return (ret == 0)
+
+    def bind_umount(self, binddir):
+        ret = subprocess.call(["umount", binddir])
+        return (ret == 0)
+        
+
 class AptClone(object):
     """ clone the package selection/installation of a existing system
         using the information that apt provides
@@ -291,8 +300,11 @@ class AptClone(object):
             save_state() and restore the packages/repositories
             into targetdir (that is usually "/")
         """
+
         if targetdir != "/":
             apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
+            self.commands.bind_mount("/proc", os.path.join(targetdir, "proc"))
+            self.commands.bind_mount("/sys", os.path.join(targetdir, "sys"))
 
         # detect prefix
         tar = tarfile.open(statefile)
@@ -311,6 +323,11 @@ class AptClone(object):
         # FIXME: this needs to check if there are conflicts, e.g. via
         #        gdebi
         self._restore_not_downloadable_debs(statefile, targetdir)
+
+        # and umount again
+        if targetdir != "/":
+            self.commands.bind_umount(os.path.join(targetdir, "proc"))
+            self.commands.bind_mount(os.path.join(targetdir, "sys"))
 
     # simulate restore and return list of missing pkgs
     def simulate_restore_state(self, statefile, new_distro=None):

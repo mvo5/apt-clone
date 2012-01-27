@@ -3,6 +3,8 @@ apt-clone (0.2.3) UNRELEASED; urgency=low
   * apt_clone.py:
     - fix restoring of the clone with later apt versions (thanks
       to Colin Watson)
+    - bind mount /proc, /sys on restore to chroot (thanks to
+      Colin Watson)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 27 Jan 2012 16:29:17 +0100
 
