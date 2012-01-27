@@ -421,6 +421,8 @@ class AptClone(object):
     def _restore_package_selection(self, statefile, targetdir, protect_installed):
         # create new cache
         cache = self._cache_cls(rootdir=targetdir)
+        # python-apt Cache(rootdir=) will mangle dir::bin, fix that
+        apt.apt_pkg.config.set("Dir::Bin", "/")
         try:
             cache.update(self.fetch_progress)
         except FetchFailedException:
