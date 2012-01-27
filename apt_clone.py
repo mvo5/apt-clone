@@ -76,7 +76,7 @@ class LowLevelCommands(object):
         return (ret == 0)
 
     def bind_mount(self, olddir, newdir):
-        ret = subprocess.call(["mount", "--bind", oldir, newdir])
+        ret = subprocess.call(["mount", "--bind", olddir, newdir])
         return (ret == 0)
 
     def bind_umount(self, binddir):
@@ -110,6 +110,8 @@ class AptClone(object):
             self.install_progress = install_progress
         else:
             self.install_progress = apt.progress.base.InstallProgress()
+        # FIXME: SIIIIILLLLLLLYYYYYYYYY use mock.patch instead to patch
+        #        the apt.Cache() to a mock
         # cache class (e.g. apt.Cache)
         if cache_cls:
             self._cache_cls = cache_cls
@@ -234,7 +236,7 @@ class AptClone(object):
 
     # detect prefix
     def _detect_tarprefix(self, tar):
-        print tar.getnames()
+        #print tar.getnames()
         if tar.getnames()[-1].startswith("./"):
             self.TARPREFIX = "./"
         else:
@@ -327,7 +329,7 @@ class AptClone(object):
         # and umount again
         if targetdir != "/":
             self.commands.bind_umount(os.path.join(targetdir, "proc"))
-            self.commands.bind_mount(os.path.join(targetdir, "sys"))
+            self.commands.bind_umount(os.path.join(targetdir, "sys"))
 
     # simulate restore and return list of missing pkgs
     def simulate_restore_state(self, statefile, new_distro=None):

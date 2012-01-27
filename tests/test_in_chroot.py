@@ -7,7 +7,11 @@ import subprocess
 import sys
 import unittest
 
-
+# use the right dir
+testdir = os.path.dirname(__file__)
+if testdir:
+    os.chdir(testdir)
+# insert path
 sys.path.insert(0, "..")
 from apt_clone import AptClone
 
@@ -23,7 +27,8 @@ class TestClone(unittest.TestCase):
         if os.getuid() != 0:
             print "Skipping because uid != 0"
             return
-        target = "./tests/test-chroot"
+        # do it
+        target = "./test-chroot"
         if not os.path.exists(target):
             os.mkdir(target)
             subprocess.call(["debootstrap", "--arch=i386",
@@ -31,10 +36,11 @@ class TestClone(unittest.TestCase):
         # force i386
         open(os.path.join(target, "etc/apt/apt.conf"), "w").write(
             'APT::Architecture "i386";')
+
         # restore
         clone = AptClone()
         clone.restore_state(
-            "./tests/data/apt-state_chroot_with_vim.tar.gz", target, "maverick")
+            "./data/apt-state_chroot_with_vim.tar.gz", target, "maverick")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
