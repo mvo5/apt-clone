@@ -423,6 +423,7 @@ class AptClone(object):
         cache = self._cache_cls(rootdir=targetdir)
         # python-apt Cache(rootdir=) will mangle dir::bin, fix that
         apt.apt_pkg.config.set("Dir::Bin", "/")
+        apt.apt_pkg.config.set("Dir::Bin::dpkg", "/usr/bin/dpkg")
         try:
             cache.update(self.fetch_progress)
         except FetchFailedException:
