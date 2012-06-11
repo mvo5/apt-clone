@@ -36,8 +36,8 @@ class TestClone(unittest.TestCase):
             subprocess.call(["debootstrap", "--arch=i386",
                              "maverick", target])
         # force i386
-        open(os.path.join(target, "etc/apt/apt.conf"), "w").write(
-            'APT::Architecture "i386";')
+        with open(os.path.join(target, "etc/apt/apt.conf"), "w") as fp:
+            fp.write('APT::Architecture "i386";')
 
         # restore
         clone = AptClone()
