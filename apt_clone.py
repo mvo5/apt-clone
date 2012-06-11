@@ -399,7 +399,7 @@ class AptClone(object):
                             if cache.broken_count > 0:
                                 resolver.resolve()
                                 if not cache[name].marked_install:
-                                    raise SystemError, "pkg %s not marked upgrade" % name
+                                    raise SystemError("pkg %s not marked upgrade" % name)
                         else:
                             # normal mode, this assume the system is consistent
                             cache[name].mark_install(from_user=from_user)

@@ -2,6 +2,8 @@ apt-clone (0.2.2ubuntu1) UNRELEASED; urgency=low
 
   * Port to Python 3:
     - Use Python 3-style print functions.
+    - Use "raise Exception(value)" syntax rather than the old-style "raise
+      Exception, value".
 
  -- Colin Watson <cjwatson@ubuntu.com>  Mon, 11 Jun 2012 09:12:14 +0100
 
