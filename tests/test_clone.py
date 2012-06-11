@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 import apt
 import apt_pkg
 import mock
@@ -59,7 +61,7 @@ class TestClone(unittest.TestCase):
         tarname = os.path.join(targetdir, clone.CLONE_FILENAME)
         self.assertTrue(os.path.exists(tarname))
         tar = tarfile.open(tarname)
-        #print tar.getmembers()
+        #print(tar.getmembers())
         # verify members in tar
         members = [m.name for m in tar.getmembers()]
         self.assertTrue("./etc/apt/sources.list" in members)
@@ -139,7 +141,7 @@ class TestClone(unittest.TestCase):
         missing = clone.simulate_restore_state(
             "./data/apt-state-ubuntu-lucid.tar.gz", "maverick") 
         # FIXME: check that the stuff in missing is ok
-        print missing
+        print(missing)
 
     def test_modified_conffiles(self):
         clone = AptClone()
@@ -162,13 +164,13 @@ class TestClone(unittest.TestCase):
             "Dir::state::status", 
             "/var/lib/dpkg/status")
         unowned = clone._find_unowned_in_etc()
-        #print unowned
+        #print(unowned)
         self.assertNotEqual(unowned, set())
         # negative test, is created by the installer
         self.assertTrue("/etc/apt/sources.list" in unowned)
         # postivie test, belongs to base-files
         self.assertFalse("/etc/issue" in unowned)
-        print "\n".join(sorted(unowned))
+        print("\n".join(sorted(unowned)))
 
 if __name__ == "__main__":
     unittest.main()
