@@ -31,7 +31,7 @@ import tarfile
 import tempfile
 import time
 
-from io import StringIO
+from io import BytesIO
 
 if "APT_CLONE_DEBUG_RESOLVER" in os.environ:
     apt_pkg.config.set("Debug::pkgProblemResolver", "1")
@@ -160,7 +160,7 @@ class AptClone(object):
                        'arch'       : apt_pkg.config.find("APT::Architecture")
                      }
         # save it
-        f = tempfile.NamedTemporaryFile()
+        f = tempfile.NamedTemporaryFile(mode='w')
         info = "\n".join(["%s: %s" % (key, value) 
                           for (key, value) in host_info.items()])
         f.write(info+"\n")
@@ -184,7 +184,8 @@ class AptClone(object):
         tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
         tarinfo.size = len(s)
         tarinfo.mtime = time.time()
-        tar.addfile(tarinfo, StringIO(s))
+        s = bytes(s, 'utf-8')
+        tar.addfile(tarinfo, BytesIO(s))
 
     def _write_state_dpkg_status(self, tar):
         # store dpkg-status, this is not strictly needed as installed.pkgs
@@ -403,7 +404,7 @@ class AptClone(object):
         # the actiongroup will help libapt to speed up the following loop
         with cache.actiongroup():
             for line in f.readlines():
-                line = line.strip()
+                line = line.strip().decode('utf-8')
                 if line.startswith("#") or line == "":
                     continue
                 (name, version, auto) = line.split()
