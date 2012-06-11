@@ -26,7 +26,7 @@ class TestMergeSources(unittest.TestCase):
                 if line != '\n' and not line.startswith('#'):
                     tally[line] += 1
             # There should not be any duplicate source lines.
-            for line, count in tally.iteritems():
+            for line, count in tally.items():
                 self.failUnless(count == 1, '"%s" occurred %d times.'
                                 % (line, count))
 

@@ -151,7 +151,7 @@ class AptClone(object):
         # save it
         f = tempfile.NamedTemporaryFile()
         info = "\n".join(["%s: %s" % (key, value) 
-                          for (key, value) in host_info.iteritems()])
+                          for (key, value) in host_info.items()])
         f.write(info+"\n")
         f.flush()
         tar.add(f.name, arcname="./var/lib/apt-clone/uname")
