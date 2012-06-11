@@ -5,6 +5,13 @@ apt-clone (0.2.3) UNRELEASED; urgency=low
       to Colin Watson)
     - bind mount /proc, /sys on restore to chroot (thanks to
       Colin Watson)
+  * Finish port to Python 3:
+    - Handle unicode changes.
+    - Do not leak file descriptors.
+    - Test against both Python2.7 and Python3.
+    - Do not use the deprecated failUnless.
+    - Use the io module instead of StringIO.
+    - Fix a failing test caused by acpi-support being in main.
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 27 Jan 2012 16:29:17 +0100
 
