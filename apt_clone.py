@@ -521,9 +521,10 @@ class AptClone(object):
         owned = set()
         dpkg_basedir = os.path.dirname(apt_pkg.config.get("Dir::State::status"))
         for f in glob.glob(os.path.join(dpkg_basedir, "info", "*.list")):
-            for line in open(f):
-                if line.startswith("/etc/"):
-                    owned.add(line.strip())
+            with open(f) as fp:
+                for line in fp:
+                    if line.startswith("/etc/"):
+                        owned.add(line.strip())
         # now go over etc
         unowned = set()
         for dirpath, dirnames, filenames in os.walk(etcdir):
@@ -559,7 +560,8 @@ class AptClone(object):
                         continue
                     # check content
                     md5 = hashlib.md5()
-                    md5.update(open(path).read())
+                    with open(path, 'rb') as fp:
+                        md5.update(fp.read())
                     if md5.hexdigest() != md5sum:
                         logging.debug("conffile %s (%s != %s)" % (
                                 path, md5.hexdigest(), md5sum))
