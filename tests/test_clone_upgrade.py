@@ -9,7 +9,7 @@ import tarfile
 import tempfile
 import unittest
 
-from StringIO import StringIO
+from io import StringIO
 
 sys.path.insert(0, "..")
 import apt_clone

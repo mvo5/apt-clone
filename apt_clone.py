@@ -31,7 +31,7 @@ import tarfile
 import tempfile
 import time
 
-from StringIO import StringIO
+from io import StringIO
 
 if "APT_CLONE_DEBUG_RESOLVER" in os.environ:
     apt_pkg.config.set("Debug::pkgProblemResolver", "1")
