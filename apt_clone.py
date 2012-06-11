@@ -184,7 +184,7 @@ class AptClone(object):
         tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
         tarinfo.size = len(s)
         tarinfo.mtime = time.time()
-        s = bytes(s, 'utf-8')
+        s = s.encode('utf-8')
         tar.addfile(tarinfo, BytesIO(s))
 
     def _write_state_dpkg_status(self, tar):
