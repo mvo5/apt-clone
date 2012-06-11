@@ -128,7 +128,7 @@ class TestClone(unittest.TestCase):
         clone = AptClone()
         missing = clone.simulate_restore_state("./data/apt-state.tar.gz")
         # missing, because clone does not have universe enabled
-        self.assertEqual(list(missing), ["accerciser", "acpi-support"])
+        self.assertEqual(list(missing), ["accerciser"])
 
     def test_restore_state_simulate_with_new_release(self):
         #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
