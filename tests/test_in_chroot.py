@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 import apt
 import logging
 import os
@@ -21,7 +23,7 @@ class TestClone(unittest.TestCase):
 
     def test_real(self):
         if os.getuid() != 0:
-            print "Skipping because uid != 0"
+            print("Skipping because uid != 0")
             return
         target = "./tests/test-chroot"
         if not os.path.exists(target):

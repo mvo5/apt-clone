@@ -17,6 +17,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from __future__ import print_function
+
 import argparse
 from apt_clone import AptClone
 
@@ -79,19 +81,19 @@ if __name__ == "__main__":
     clone = AptClone()
     if args.command == "info":
         info = clone.info(args.source)
-        print info
+        print(info)
     if args.command == "clone":
         clone.save_state(args.source, args.destination, 
                          args.with_dpkg_repack, args.with_dpkg_status)
-        print "not installable: %s" % ", ".join(clone.not_downloadable)
-        print "version mismatch: %s" % ", ".join(clone.version_mismatch)
+        print("not installable: %s" % ", ".join(clone.not_downloadable))
+        print("version mismatch: %s" % ", ".join(clone.version_mismatch))
         if not args.with_dpkg_repack:
-            print "\nNote that you can use --with-dpkg-repack to include "\
-                  "those packges in the clone file."
+            print("\nNote that you can use --with-dpkg-repack to include "
+                  "those packges in the clone file.")
     elif args.command == "restore":
         if args.simulate:
             miss = clone.simulate_restore_state(args.source)
-            print "missing: %s" % ",".join(sorted(list(miss)))
+            print("missing: %s" % ",".join(sorted(list(miss))))
         else:
             clone.restore_state(args.source, args.destination)
     elif args.command == "restore-new-distro":
@@ -111,7 +113,7 @@ if __name__ == "__main__":
         if args.simulate:
             miss = clone.simulate_restore_state(
                 args.source, args.new_distro_codename)
-            print "missing: %s" % ",".join(sorted(list(miss)))
+            print("missing: %s" % ",".join(sorted(list(miss))))
         else:
             clone.restore_state(
                 args.source, args.destination, args.new_distro_codename, protect_installed)

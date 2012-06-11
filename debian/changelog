@@ -1,3 +1,10 @@
+apt-clone (0.2.2ubuntu1) UNRELEASED; urgency=low
+
+  * Port to Python 3:
+    - Use Python 3-style print functions.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 11 Jun 2012 09:12:14 +0100
+
 apt-clone (0.2.2) unstable; urgency=low
 
   * fix extraction of no-longer downloadable debs, thanks

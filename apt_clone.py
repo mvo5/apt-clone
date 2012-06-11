@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from __future__ import print_function
+
 import apt
 from apt.cache import FetchFailedException
 import apt_pkg
@@ -221,11 +223,11 @@ class AptClone(object):
             self.commands.repack_deb(pkgname, tdir)
         tar.add(tdir, arcname="./var/lib/apt-clone/debs")
         shutil.rmtree(tdir)
-        #print tdir
+        #print(tdir)
 
     # detect prefix
     def _detect_tarprefix(self, tar):
-        print tar.getnames()
+        print(tar.getnames())
         if tar.getnames()[-1].startswith("./"):
             self.TARPREFIX = "./"
         else:
@@ -299,7 +301,7 @@ class AptClone(object):
         self._detect_tarprefix(tar)
 
         if not os.path.exists(targetdir):
-            print "Dir '%s' does not exist, need to bootstrap first" % targetdir
+            print("Dir '%s' does not exist, need to bootstrap first" % targetdir)
             distro = self._get_info_distro(statefile)
             self.commands.debootstrap(targetdir, distro)
 
@@ -543,7 +545,7 @@ class AptClone(object):
         return modified
 
     def _dump_debconf_database(self, sourcedir):
-        print "not implemented yet"
+        print("not implemented yet")
         # debconf-copydb configdb newdb --config=Name:newdb --config=Driver:File --config=Filename:/tmp/lala.db
         # 
         # debconf-copydb newdb configdb --config=Name:newdb --config=Driver:File --config=Filename:/tmp/lala.db
