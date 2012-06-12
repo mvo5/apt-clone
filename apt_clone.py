@@ -239,7 +239,7 @@ class AptClone(object):
 
     # detect prefix
     def _detect_tarprefix(self, tar):
-        print(tar.getnames())
+        #print(tar.getnames())
         if tar.getnames()[-1].startswith("./"):
             self.TARPREFIX = "./"
         else:
