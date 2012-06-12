@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 import apt
 import logging
 import os
@@ -25,7 +27,7 @@ class TestClone(unittest.TestCase):
 
     def test_real(self):
         if os.getuid() != 0:
-            print "Skipping because uid != 0"
+            print("Skipping because uid != 0")
             return
         # do it
         target = "./test-chroot"
@@ -34,8 +36,8 @@ class TestClone(unittest.TestCase):
             subprocess.call(["debootstrap", "--arch=i386",
                              "maverick", target])
         # force i386
-        open(os.path.join(target, "etc/apt/apt.conf"), "w").write(
-            'APT::Architecture "i386";')
+        with open(os.path.join(target, "etc/apt/apt.conf"), "w") as fp:
+            fp.write('APT::Architecture "i386";')
 
         # restore
         clone = AptClone()

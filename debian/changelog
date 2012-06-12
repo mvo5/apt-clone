@@ -1,10 +1,27 @@
-apt-clone (0.2.3) UNRELEASED; urgency=low
+apt-clone (0.2.2ubuntu1) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * apt_clone.py:
     - fix restoring of the clone with later apt versions (thanks
       to Colin Watson)
     - bind mount /proc, /sys on restore to chroot (thanks to
       Colin Watson)
+
+  [ Colin Watson ]
+  * Port to Python 3:
+    - Use Python 3-style print functions.
+    - Use "raise Exception(value)" syntax rather than the old-style "raise
+      Exception, value".
+    - Use dict.items() rather than dict.iteritems().
+
+  [ Evan Dandrea ]
+  * Finish port to Python 3:
+    - Handle unicode changes.
+    - Do not leak file descriptors.
+    - Test against both Python2.7 and Python3.
+    - Do not use the deprecated failUnless.
+    - Use the io module instead of StringIO.
+    - Fix a failing test caused by acpi-support being in main.
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 27 Jan 2012 16:29:17 +0100
 

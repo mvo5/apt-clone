@@ -26,8 +26,8 @@ class TestMergeSources(unittest.TestCase):
                 if line != '\n' and not line.startswith('#'):
                     tally[line] += 1
             # There should not be any duplicate source lines.
-            for line, count in tally.iteritems():
-                self.failUnless(count == 1, '"%s" occurred %d times.'
+            for line, count in tally.items():
+                self.assertTrue(count == 1, '"%s" occurred %d times.'
                                 % (line, count))
 
             # Check for extras, others...
@@ -43,7 +43,7 @@ class TestMergeSources(unittest.TestCase):
                 for line in fp:
                     if line == match:
                         found = True
-                self.failUnless(found,
+                self.assertTrue(found,
                         '%s repository not present or disabled.' % pocket)
 
 if __name__ == "__main__":

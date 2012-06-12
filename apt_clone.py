@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from __future__ import print_function
+
 import apt
 from apt.cache import FetchFailedException
 import apt_pkg
@@ -29,7 +31,7 @@ import tarfile
 import tempfile
 import time
 
-from StringIO import StringIO
+from io import BytesIO
 
 if "APT_CLONE_DEBUG_RESOLVER" in os.environ:
     apt_pkg.config.set("Debug::pkgProblemResolver", "1")
@@ -158,9 +160,9 @@ class AptClone(object):
                        'arch'       : apt_pkg.config.find("APT::Architecture")
                      }
         # save it
-        f = tempfile.NamedTemporaryFile()
+        f = tempfile.NamedTemporaryFile(mode='w')
         info = "\n".join(["%s: %s" % (key, value) 
-                          for (key, value) in host_info.iteritems()])
+                          for (key, value) in host_info.items()])
         f.write(info+"\n")
         f.flush()
         tar.add(f.name, arcname="./var/lib/apt-clone/uname")
@@ -180,9 +182,10 @@ class AptClone(object):
                     self.version_mismatch.add(pkg.name)
         # store the installed.pkgs
         tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
+        s = s.encode('utf-8')
         tarinfo.size = len(s)
         tarinfo.mtime = time.time()
-        tar.addfile(tarinfo, StringIO(s))
+        tar.addfile(tarinfo, BytesIO(s))
 
     def _write_state_dpkg_status(self, tar):
         # store dpkg-status, this is not strictly needed as installed.pkgs
@@ -232,11 +235,11 @@ class AptClone(object):
             self.commands.repack_deb(pkgname, tdir)
         tar.add(tdir, arcname="./var/lib/apt-clone/debs")
         shutil.rmtree(tdir)
-        #print tdir
+        #print(tdir)
 
     # detect prefix
     def _detect_tarprefix(self, tar):
-        #print tar.getnames()
+        #print(tar.getnames())
         if tar.getnames()[-1].startswith("./"):
             self.TARPREFIX = "./"
         else:
@@ -313,7 +316,7 @@ class AptClone(object):
         self._detect_tarprefix(tar)
 
         if not os.path.exists(targetdir):
-            print "Dir '%s' does not exist, need to bootstrap first" % targetdir
+            print("Dir '%s' does not exist, need to bootstrap first" % targetdir)
             distro = self._get_info_distro(statefile)
             self.commands.debootstrap(targetdir, distro)
 
@@ -401,7 +404,7 @@ class AptClone(object):
         # the actiongroup will help libapt to speed up the following loop
         with cache.actiongroup():
             for line in f.readlines():
-                line = line.strip()
+                line = line.strip().decode('utf-8')
                 if line.startswith("#") or line == "":
                     continue
                 (name, version, auto) = line.split()
@@ -416,7 +419,7 @@ class AptClone(object):
                             if cache.broken_count > 0:
                                 resolver.resolve()
                                 if not cache[name].marked_install:
-                                    raise SystemError, "pkg %s not marked upgrade" % name
+                                    raise SystemError("pkg %s not marked upgrade" % name)
                         else:
                             # normal mode, this assume the system is consistent
                             cache[name].mark_install(from_user=from_user)
@@ -519,9 +522,10 @@ class AptClone(object):
         owned = set()
         dpkg_basedir = os.path.dirname(apt_pkg.config.get("Dir::State::status"))
         for f in glob.glob(os.path.join(dpkg_basedir, "info", "*.list")):
-            for line in open(f):
-                if line.startswith("/etc/"):
-                    owned.add(line.strip())
+            with open(f) as fp:
+                for line in fp:
+                    if line.startswith("/etc/"):
+                        owned.add(line.strip())
         # now go over etc
         unowned = set()
         for dirpath, dirnames, filenames in os.walk(etcdir):
@@ -535,37 +539,39 @@ class AptClone(object):
         dpkg_status = sourcedir+apt_pkg.config.find("Dir::State::status")
         modified = set()
         # iterate dpkg-status file
-        tag = apt_pkg.TagFile(open(dpkg_status))
-        for entry in tag:
-            if "conffiles" in entry:
-                for line in entry["conffiles"].split("\n"):
-                    obsolete = None
-                    if len(line.split()) == 3:
-                        name, md5sum, obsolete = line.split()
-                    else:
-                        name, md5sum = line.split()
-                    # update
-                    path = sourcedir+name
-                    md5sum = md5sum.strip()
-                    # ignore oboslete conffiles
-                    if obsolete == "obsolete":
-                        continue
-                    # user removed conffile
-                    if not os.path.exists(path):
-                        logging.debug("conffile %s removed" % path)
-                        modified.add(path)
-                        continue
-                    # check content
-                    md5 = hashlib.md5()
-                    md5.update(open(path).read())
-                    if md5.hexdigest() != md5sum:
-                        logging.debug("conffile %s (%s != %s)" % (
-                                path, md5.hexdigest(), md5sum))
-                        modified.add(path)
+        with open(dpkg_status) as fp:
+            tag = apt_pkg.TagFile(fp)
+            for entry in tag:
+                if "conffiles" in entry:
+                    for line in entry["conffiles"].split("\n"):
+                        obsolete = None
+                        if len(line.split()) == 3:
+                            name, md5sum, obsolete = line.split()
+                        else:
+                            name, md5sum = line.split()
+                        # update
+                        path = sourcedir+name
+                        md5sum = md5sum.strip()
+                        # ignore oboslete conffiles
+                        if obsolete == "obsolete":
+                            continue
+                        # user removed conffile
+                        if not os.path.exists(path):
+                            logging.debug("conffile %s removed" % path)
+                            modified.add(path)
+                            continue
+                        # check content
+                        md5 = hashlib.md5()
+                        with open(path, 'rb') as fp:
+                            md5.update(fp.read())
+                        if md5.hexdigest() != md5sum:
+                            logging.debug("conffile %s (%s != %s)" % (
+                                    path, md5.hexdigest(), md5sum))
+                            modified.add(path)
         return modified
 
     def _dump_debconf_database(self, sourcedir):
-        print "not implemented yet"
+        print("not implemented yet")
         # debconf-copydb configdb newdb --config=Name:newdb --config=Driver:File --config=Filename:/tmp/lala.db
         # 
         # debconf-copydb newdb configdb --config=Name:newdb --config=Driver:File --config=Filename:/tmp/lala.db

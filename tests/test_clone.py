@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 import apt
 import apt_pkg
 import mock
@@ -10,7 +12,7 @@ import tarfile
 import tempfile
 import unittest
 
-from StringIO import StringIO
+from io import StringIO
 
 sys.path.insert(0, "..")
 import apt_clone
@@ -31,7 +33,8 @@ class TestClone(unittest.TestCase):
         os.makedirs(os.path.join(self.tempdir, "var/lib/dpkg/"))
         # ensure we are the right arch
         os.makedirs(os.path.join(self.tempdir, "etc/apt"))
-        open(os.path.join(self.tempdir, "etc/apt/apt.conf"), "w").write('''
+        with open(os.path.join(self.tempdir, "etc/apt/apt.conf"), "w") as fp:
+            fp.write('''
 #clear Dpkg::Post-Invoke;
 #clear Dpkg::Pre-Invoke;
 #clear APT::Update;
@@ -59,7 +62,7 @@ class TestClone(unittest.TestCase):
         tarname = os.path.join(targetdir, clone.CLONE_FILENAME)
         self.assertTrue(os.path.exists(tarname))
         tar = tarfile.open(tarname)
-        #print tar.getmembers()
+        #print(tar.getmembers())
         # verify members in tar
         members = [m.name for m in tar.getmembers()]
         self.assertTrue("./etc/apt/sources.list" in members)
@@ -108,11 +111,14 @@ class TestClone(unittest.TestCase):
         # create target dir
         targetdir = self.tempdir
         # status file from maverick (to simulate running on a maverick live-cd)
-        s=open("./data/dpkg-status/dpkg-status-ubuntu-maverick").read()
+        with open("./data/dpkg-status/dpkg-status-ubuntu-maverick") as fp:
+            s = fp.read()
         s = s.replace(
             "Architecture: i386",
             "Architecture: %s" % apt_pkg.config.find("Apt::Architecture"))
-        open(os.path.join(targetdir, "var/lib/dpkg", "status"), "w").write(s)
+        path = os.path.join(targetdir, "var/lib/dpkg", "status")
+        with open(path, "w") as fp:
+            fp.write(s)
         # test upgrade clone from lucid system to maverick
         clone = AptClone(cache_cls=MockAptCache)
         clone.restore_state(
@@ -121,14 +127,16 @@ class TestClone(unittest.TestCase):
             "maverick")
         sources_list = os.path.join(targetdir, "etc","apt","sources.list")
         self.assertTrue(os.path.exists(sources_list))
-        self.assertTrue("maverick" in open(sources_list).read())
-        self.assertFalse("lucid" in open(sources_list).read())
+        with open(sources_list) as fp:
+            self.assertTrue("maverick" in fp.read())
+        with open(sources_list) as fp:
+            self.assertFalse("lucid" in fp.read())
         
     def test_restore_state_simulate(self):
         clone = AptClone()
         missing = clone.simulate_restore_state("./data/apt-state.tar.gz")
         # missing, because clone does not have universe enabled
-        self.assertEqual(list(missing), ["accerciser", "acpi-support"])
+        self.assertEqual(list(missing), ["accerciser"])
 
     def test_restore_state_simulate_with_new_release(self):
         #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
@@ -139,7 +147,7 @@ class TestClone(unittest.TestCase):
         missing = clone.simulate_restore_state(
             "./data/apt-state-ubuntu-lucid.tar.gz", "maverick") 
         # FIXME: check that the stuff in missing is ok
-        print missing
+        print(missing)
 
     def test_modified_conffiles(self):
         clone = AptClone()
@@ -162,13 +170,13 @@ class TestClone(unittest.TestCase):
             "Dir::state::status", 
             "/var/lib/dpkg/status")
         unowned = clone._find_unowned_in_etc()
-        #print unowned
+        #print(unowned)
         self.assertNotEqual(unowned, set())
         # negative test, is created by the installer
         self.assertTrue("/etc/apt/sources.list" in unowned)
         # postivie test, belongs to base-files
         self.assertFalse("/etc/issue" in unowned)
-        print "\n".join(sorted(unowned))
+        print("\n".join(sorted(unowned)))
 
 if __name__ == "__main__":
     unittest.main()
