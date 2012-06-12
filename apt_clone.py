@@ -182,9 +182,9 @@ class AptClone(object):
                     self.version_mismatch.add(pkg.name)
         # store the installed.pkgs
         tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
+        s = s.encode('utf-8')
         tarinfo.size = len(s)
         tarinfo.mtime = time.time()
-        s = s.encode('utf-8')
         tar.addfile(tarinfo, BytesIO(s))
 
     def _write_state_dpkg_status(self, tar):
