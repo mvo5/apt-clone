@@ -1,4 +1,4 @@
-apt-clone (0.2.2ubuntu1) UNRELEASED; urgency=low
+apt-clone (0.2.3) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * apt_clone.py:
@@ -23,7 +23,12 @@ apt-clone (0.2.2ubuntu1) UNRELEASED; urgency=low
     - Use the io module instead of StringIO.
     - Fix a failing test caused by acpi-support being in main.
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 27 Jan 2012 16:29:17 +0100
+  [ Stéphane Graber ]
+  * Python 3 port:
+    - Update packaging to build using python3
+    - Update all the headers to use /usr/bin/python3
+
+ -- Stéphane Graber <stgraber@ubuntu.com>  Tue, 12 Jun 2012 15:58:34 -0400
 
 apt-clone (0.2.2) unstable; urgency=low
 
