@@ -25,6 +25,7 @@ import logging
 import glob
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import tarfile
@@ -121,8 +122,9 @@ class AptClone(object):
             self._cache_cls = apt.Cache
 
     # save
-    def save_state(self, sourcedir, target, 
-                   with_dpkg_repack=False, with_dpkg_status=False):
+    def save_state(self, sourcedir, target,
+                   with_dpkg_repack=False, with_dpkg_status=False,
+                   scrub_sources=False):
         """ save the current system state (installed pacakges, enabled
             repositories ...) into the apt-state.tar.gz file in targetdir
         """
@@ -143,7 +145,7 @@ class AptClone(object):
         self._write_uname(tar)
         self._write_state_installed_pkgs(sourcedir, tar)
         self._write_state_auto_installed(tar)
-        self._write_state_sources_list(tar)
+        self._write_state_sources_list(tar, scrub_sources)
         self._write_state_apt_preferences(tar)
         self._write_state_apt_keyring(tar)
         if with_dpkg_status:
@@ -218,12 +220,30 @@ class AptClone(object):
         if os.path.exists(p):
             tar.add(p, arcname="./etc/apt/trusted.gpg.d")
 
-    def _write_state_sources_list(self, tar):
-        tar.add(apt_pkg.config.find_file("Dir::Etc::sourcelist"),
-                arcname="./etc/apt/sources.list")
+    def _write_state_sources_list(self, tar, scrub=False):
+        self._add_file_to_tar_with_password_check(tar,
+            apt_pkg.config.find_file("Dir::Etc::sourcelist"), scrub)
         source_parts = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
         if os.path.exists(source_parts):
-            tar.add(source_parts, arcname="./etc/apt/sources.list.d")
+            for source in os.listdir(source_parts):
+                sources_file_name = '%s/%s' % (source_parts, source)
+                self._add_file_to_tar_with_password_check(tar,
+                    sources_file_name, scrub)
+
+    def _add_file_to_tar_with_password_check(self, tar, sources, scrub=False):
+        if scrub:
+            with tempfile.NamedTemporaryFile(mode='w') as source_copy, open(sources, 'r') as f:
+                for line in f.readlines():
+                    if re.search('/[^/@:]*:[^/@:]*@', line):
+                        scrubbed_line = re.sub('/[^/@:]*:[^/@:]*@',
+                            '/USERNAME:PASSWORD@', line)
+                        source_copy.write(scrubbed_line)
+                    else:
+                        source_copy.write(line)
+                    source_copy.flush()
+                tar.add(source_copy.name, arcname=".%s" % (sources))
+        else:
+            tar.add(sources, arcname='.%s' % sources)
 
     def _write_modified_files_from_etc(self, tar):
         #etcdir = os.path.join(apt_pkg.config.get("Dir"), "etc")

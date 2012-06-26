@@ -28,6 +28,10 @@ apt-clone (0.2.3) UNRELEASED; urgency=low
     - Update packaging to build using python3
     - Update all the headers to use /usr/bin/python3
 
+  [ Brian Murray ]
+  * apt_clone.py:
+    - if specified remove usernames and passwords from sources files
+
  -- Stéphane Graber <stgraber@ubuntu.com>  Tue, 12 Jun 2012 15:58:34 -0400
 
 apt-clone (0.2.2) unstable; urgency=low
