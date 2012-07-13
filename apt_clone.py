@@ -375,13 +375,13 @@ class AptClone(object):
         only_on_system = set(installed_on_system.keys()) - set(installed_in_clone.keys())
         if only_on_system:
             print("Installed on the system but not in the clone:")
-            print(", ".join(sorted(only_on_system)))
+            print(" ".join(sorted(only_on_system)))
             print("\n")
 
         only_in_clone =  set(installed_in_clone.keys()) - set(installed_on_system.keys())
         if only_in_clone:
             print("Installed in the clone but not in the system:")
-            print(", ".join(sorted(only_in_clone)))
+            print(" ".join(sorted(only_in_clone)))
             print("\n")
 
     # restore
