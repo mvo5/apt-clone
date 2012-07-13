@@ -21,13 +21,15 @@ from __future__ import print_function
 import apt
 from apt.cache import FetchFailedException
 import apt_pkg
-import logging
+import difflib
 import glob
 import hashlib
+import logging
 import os
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import time
@@ -318,6 +320,69 @@ class AptClone(object):
                                       'date' : time.ctime(date),
                                       'arch' : arch,
                                       }
+
+    # show-diff
+    def _get_file_diff_against_clone(self, statefile, system_file):
+        tar = tarfile.open(statefile)
+        self._detect_tarprefix(tar)
+        clone_file = tar.extractfile(self.TARPREFIX+system_file[1:])
+        if os.path.exists(system_file):
+            system_file_lines = open(system_file).readlines()
+        else:
+            system_file_lines = []
+        gen = difflib.unified_diff(
+            system_file_lines, clone_file.readlines(), 
+            fromfile="current-system%s" % system_file, tofile=system_file)
+        diff = []
+        for line in gen:
+            diff.append(line)
+        return diff
+
+    def show_diff(self, statefile, targetdir="/"):
+        if targetdir != "/":
+            apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
+            self.commands.bind_mount("/proc", os.path.join(targetdir, "proc"))
+            self.commands.bind_mount("/sys", os.path.join(targetdir, "sys"))
+
+        # show sources.list{,.d} diff
+        sources_list_system = os.path.join(
+            targetdir, "etc", "apt", "sources.list")
+        diff = self._get_file_diff_against_clone(statefile, sources_list_system)
+        if diff:
+            print("".join(diff))
+        # FIXME: do sources.list.d diff too
+        # FIXME: do apt-keyring diff
+        #self._restore_package_selection(statefile, targetdir, protect_installed)
+        # create new cache in the rootdir
+        cache = self._cache_cls(rootdir=targetdir)
+        tar = tarfile.open(statefile)
+        f = tar.extractfile(self.TARPREFIX+"var/lib/apt-clone/installed.pkgs")
+        # get the data
+        installed_in_clone = {}
+        for line in f.readlines():
+            line = line.strip().decode('utf-8')
+            if line.startswith("#") or line == "":
+                continue
+            (name, version, auto) = line.split()
+            installed_in_clone[name] = (version, auto)
+        installed_on_system = {}
+        for pkg in cache:
+            if not pkg.installed:
+                continue
+            installed_on_system[pkg.name] = (
+                pkg.installed.version, str(pkg.is_auto_installed))
+        
+        only_on_system = set(installed_on_system.keys()) - set(installed_in_clone.keys())
+        if only_on_system:
+            print("Installed on the system but not in the clone:")
+            print(", ".join(sorted(only_on_system)))
+            print("\n")
+
+        only_in_clone =  set(installed_in_clone.keys()) - set(installed_on_system.keys())
+        if only_in_clone:
+            print("Installed in the clone but not in the system:")
+            print(", ".join(sorted(only_in_clone)))
+            print("\n")
 
     # restore
     def restore_state(self, statefile, targetdir="/", new_distro=None, protect_installed=False):
