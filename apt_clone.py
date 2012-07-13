@@ -156,13 +156,17 @@ class AptClone(object):
             self._dpkg_repack(tar)
         tar.close()
 
-    def _write_uname(self, tar):
+    def _get_host_info_dict(self):
         # not really uname
         host_info = { 'hostname'   : os.uname()[1],
                        'kernel'     : os.uname()[2],
                        'uname_arch' : os.uname()[4],
                        'arch'       : apt_pkg.config.find("APT::Architecture")
                      }
+        return host_info
+
+    def _write_uname(self, tar):
+        host_info = self._get_host_info_dict()
         # save it
         f = tempfile.NamedTemporaryFile(mode='w')
         info = "\n".join(["%s: %s" % (key, value) 
@@ -275,6 +279,7 @@ class AptClone(object):
         f = tar.extractfile(self.TARPREFIX+"etc/apt/sources.list")
         distro = None
         for line in f.readlines():
+            line = line.decode("utf-8")
             if line.startswith("#") or line.strip() == "":
                 continue
             l = line.split()
@@ -282,7 +287,8 @@ class AptClone(object):
                 distro = l[2]
                 break
         return distro
-    def info(self, statefile):
+
+    def _get_clone_info_dict(self, statefile):
         distro = self._get_info_distro(statefile) or "unknown"
         # nr installed
         tar = tarfile.open(statefile)
@@ -290,10 +296,12 @@ class AptClone(object):
         installed = autoinstalled = 0
         meta = []
         for line in f.readlines():
+            line = line.decode("utf-8")
             (name, version, auto) = line.strip().split()
             installed += 1
             if int(auto):
                 autoinstalled += 1
+            # FIXME: this is a bad way to figure out about the meta-packages
             if name.endswith("-desktop"):
                 meta.append(name)
         # date
@@ -307,31 +315,39 @@ class AptClone(object):
             section = apt_pkg.TagSection(info)
             hostname = section.get("hostname", "unknown")
             arch = section.get("arch", "unknown")
+        return { 'hostname' : hostname,
+                 'distro' : distro,
+                 'meta' : ", ".join(meta),
+                 'installed' : installed,
+                 'autoinstalled' : autoinstalled, 
+                 'date' : time.ctime(date),
+                 'arch' : arch,
+               }
+
+    def info(self, statefile):
         return "Hostname: %(hostname)s\n"\
                "Arch: %(arch)s\n"\
                "Distro: %(distro)s\n"\
                "Meta: %(meta)s\n"\
                "Installed: %(installed)s pkgs (%(autoinstalled)s automatic)\n"\
-               "Date: %(date)s\n" % { 'hostname' : hostname,
-                                      'distro' : distro,
-                                      'meta' : ", ".join(meta),
-                                      'installed' : installed,
-                                      'autoinstalled' : autoinstalled, 
-                                      'date' : time.ctime(date),
-                                      'arch' : arch,
-                                      }
+               "Date: %(date)s\n" % self._get_clone_info_dict(statefile)
 
     # show-diff
     def _get_file_diff_against_clone(self, statefile, system_file):
         tar = tarfile.open(statefile)
         self._detect_tarprefix(tar)
         clone_file = tar.extractfile(self.TARPREFIX+system_file[1:])
+        clone_file_lines = []
+        # FIXME: is there a better way for this? something to tell
+        #        tarfile that really its all utf8?
+        for line in clone_file.readlines():
+            clone_file_lines.append(line.decode("utf-8"))
         if os.path.exists(system_file):
             system_file_lines = open(system_file).readlines()
         else:
             system_file_lines = []
         gen = difflib.unified_diff(
-            system_file_lines, clone_file.readlines(), 
+            system_file_lines, clone_file_lines,
             fromfile="current-system%s" % system_file, tofile=system_file)
         diff = []
         for line in gen:
@@ -344,12 +360,24 @@ class AptClone(object):
             self.commands.bind_mount("/proc", os.path.join(targetdir, "proc"))
             self.commands.bind_mount("/sys", os.path.join(targetdir, "sys"))
 
+        # show info/uname diff
+        print("Clone info differences: ")
+        host_info = self._get_host_info_dict()
+        clone_info = self._get_clone_info_dict(statefile)
+        for key in host_info:
+            if host_info.get(key, None) != clone_info.get(key, None):
+                print(" '%s': System='%s' clone='%s'" % (
+                        key, host_info.get(key, None), 
+                        clone_info.get(key, None)))
+        print("")
+
         # show sources.list{,.d} diff
         sources_list_system = os.path.join(
             targetdir, "etc", "apt", "sources.list")
         diff = self._get_file_diff_against_clone(statefile, sources_list_system)
         if diff:
             print("".join(diff))
+
         # FIXME: do sources.list.d diff too
         # FIXME: do apt-keyring diff
         #self._restore_package_selection(statefile, targetdir, protect_installed)
