@@ -413,6 +413,23 @@ class AptClone(object):
             print(" ".join(sorted(only_in_clone)))
             print("\n")
 
+        # show version differences
+        pkgversion_differences = set()
+        for pkgname in sorted(installed_in_clone):
+            if not pkgname in installed_on_system:
+                continue
+            clone_file_pkgversion, clone_is_auto = installed_in_clone[pkgname]
+            system_pkgversion, sys_is_auto = installed_on_system[pkgname]
+            if clone_file_pkgversion != system_pkgversion:
+                pkgversion_differences.add(
+                    (pkgname, clone_file_pkgversion, system_pkgversion))
+        if pkgversion_differences:
+            print("Version differences: ")
+            print("Pkgname <clone-file-version> <system-version>")
+            for pkgname, clone_ver, system_ver in pkgversion_differences:
+                print(" %s  <%s>   <%s>" % (pkgname, clone_ver, system_ver)) 
+            
+
     # restore
     def restore_state(self, statefile, targetdir="/", new_distro=None, protect_installed=False):
         """ take a statefile produced via (like apt-state.tar.gz)
