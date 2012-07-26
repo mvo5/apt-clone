@@ -358,8 +358,6 @@ class AptClone(object):
     def show_diff(self, statefile, targetdir="/"):
         if targetdir != "/":
             apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
-            self.commands.bind_mount("/proc", os.path.join(targetdir, "proc"))
-            self.commands.bind_mount("/sys", os.path.join(targetdir, "sys"))
 
         # show info/uname diff
         print("Clone info differences: ")
