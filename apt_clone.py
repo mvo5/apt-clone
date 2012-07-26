@@ -333,7 +333,7 @@ class AptClone(object):
                "Date: %(date)s\n" % self._get_clone_info_dict(statefile)
 
     # show-diff
-    def _get_file_diff_against_clone(self, statefile, system_file):
+    def _get_file_diff_against_clone(self, statefile, system_file, targetdir):
         tar = tarfile.open(statefile)
         self._detect_tarprefix(tar)
         clone_file = tar.extractfile(self.TARPREFIX+system_file[1:])
@@ -342,6 +342,7 @@ class AptClone(object):
         #        tarfile that really its all utf8?
         for line in clone_file.readlines():
             clone_file_lines.append(line.decode("utf-8"))
+        system_file = targetdir+system_file
         if os.path.exists(system_file):
             system_file_lines = open(system_file).readlines()
         else:
@@ -372,9 +373,9 @@ class AptClone(object):
         print("")
 
         # show sources.list{,.d} diff
-        sources_list_system = os.path.join(
-            targetdir, "etc", "apt", "sources.list")
-        diff = self._get_file_diff_against_clone(statefile, sources_list_system)
+        sources_list_system = "/etc/apt/sources.list"
+        diff = self._get_file_diff_against_clone(
+            statefile, sources_list_system, targetdir)
         if diff:
             print("".join(diff))
 
