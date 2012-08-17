@@ -21,13 +21,15 @@ from __future__ import print_function
 import apt
 from apt.cache import FetchFailedException
 import apt_pkg
-import logging
+import difflib
 import glob
 import hashlib
+import logging
 import os
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import time
@@ -154,13 +156,17 @@ class AptClone(object):
             self._dpkg_repack(tar)
         tar.close()
 
-    def _write_uname(self, tar):
+    def _get_host_info_dict(self):
         # not really uname
         host_info = { 'hostname'   : os.uname()[1],
                        'kernel'     : os.uname()[2],
                        'uname_arch' : os.uname()[4],
                        'arch'       : apt_pkg.config.find("APT::Architecture")
                      }
+        return host_info
+
+    def _write_uname(self, tar):
+        host_info = self._get_host_info_dict()
         # save it
         f = tempfile.NamedTemporaryFile(mode='w')
         info = "\n".join(["%s: %s" % (key, value) 
@@ -273,6 +279,7 @@ class AptClone(object):
         f = tar.extractfile(self.TARPREFIX+"etc/apt/sources.list")
         distro = None
         for line in f.readlines():
+            line = line.decode("utf-8")
             if line.startswith("#") or line.strip() == "":
                 continue
             l = line.split()
@@ -280,7 +287,8 @@ class AptClone(object):
                 distro = l[2]
                 break
         return distro
-    def info(self, statefile):
+
+    def _get_clone_info_dict(self, statefile):
         distro = self._get_info_distro(statefile) or "unknown"
         # nr installed
         tar = tarfile.open(statefile)
@@ -288,10 +296,12 @@ class AptClone(object):
         installed = autoinstalled = 0
         meta = []
         for line in f.readlines():
+            line = line.decode("utf-8")
             (name, version, auto) = line.strip().split()
             installed += 1
             if int(auto):
                 autoinstalled += 1
+            # FIXME: this is a bad way to figure out about the meta-packages
             if name.endswith("-desktop"):
                 meta.append(name)
         # date
@@ -305,19 +315,118 @@ class AptClone(object):
             section = apt_pkg.TagSection(info)
             hostname = section.get("hostname", "unknown")
             arch = section.get("arch", "unknown")
+        return { 'hostname' : hostname,
+                 'distro' : distro,
+                 'meta' : ", ".join(meta),
+                 'installed' : installed,
+                 'autoinstalled' : autoinstalled, 
+                 'date' : time.ctime(date),
+                 'arch' : arch,
+               }
+
+    def info(self, statefile):
         return "Hostname: %(hostname)s\n"\
                "Arch: %(arch)s\n"\
                "Distro: %(distro)s\n"\
                "Meta: %(meta)s\n"\
                "Installed: %(installed)s pkgs (%(autoinstalled)s automatic)\n"\
-               "Date: %(date)s\n" % { 'hostname' : hostname,
-                                      'distro' : distro,
-                                      'meta' : ", ".join(meta),
-                                      'installed' : installed,
-                                      'autoinstalled' : autoinstalled, 
-                                      'date' : time.ctime(date),
-                                      'arch' : arch,
-                                      }
+               "Date: %(date)s\n" % self._get_clone_info_dict(statefile)
+
+    # show-diff
+    def _get_file_diff_against_clone(self, statefile, system_file, targetdir):
+        tar = tarfile.open(statefile)
+        self._detect_tarprefix(tar)
+        clone_file = tar.extractfile(self.TARPREFIX+system_file[1:])
+        clone_file_lines = []
+        # FIXME: is there a better way for this? something to tell
+        #        tarfile that really its all utf8?
+        for line in clone_file.readlines():
+            clone_file_lines.append(line.decode("utf-8"))
+        system_file = targetdir+system_file
+        if os.path.exists(system_file):
+            system_file_lines = open(system_file).readlines()
+        else:
+            system_file_lines = []
+        gen = difflib.unified_diff(
+            system_file_lines, clone_file_lines,
+            fromfile="current-system%s" % system_file, tofile=system_file)
+        diff = []
+        for line in gen:
+            diff.append(line)
+        return diff
+
+    def show_diff(self, statefile, targetdir="/"):
+        if targetdir != "/":
+            apt_pkg.config.set("DPkg::Chroot-Directory", targetdir)
+
+        # show info/uname diff
+        print("Clone info differences: ")
+        host_info = self._get_host_info_dict()
+        clone_info = self._get_clone_info_dict(statefile)
+        for key in host_info:
+            if host_info.get(key, None) != clone_info.get(key, None):
+                print(" '%s': clone='%s' system='%s'" % (
+                        key, clone_info.get(key, None), 
+                        host_info.get(key, None)))
+        print("")
+
+        # show sources.list{,.d} diff
+        sources_list_system = "/etc/apt/sources.list"
+        diff = self._get_file_diff_against_clone(
+            statefile, sources_list_system, targetdir)
+        if diff:
+            print("".join(diff))
+
+        # FIXME: do sources.list.d diff too
+        # FIXME: do apt-keyring diff
+        #self._restore_package_selection(statefile, targetdir, protect_installed)
+        # create new cache in the rootdir
+        cache = self._cache_cls(rootdir=targetdir)
+        tar = tarfile.open(statefile)
+        f = tar.extractfile(self.TARPREFIX+"var/lib/apt-clone/installed.pkgs")
+        # get the data
+        installed_in_clone = {}
+        for line in f.readlines():
+            line = line.strip().decode('utf-8')
+            if line.startswith("#") or line == "":
+                continue
+            (name, version, auto) = line.split()
+            installed_in_clone[name] = (version, auto)
+        installed_on_system = {}
+        for pkg in cache:
+            if not pkg.installed:
+                continue
+            installed_on_system[pkg.name] = (
+                pkg.installed.version, str(pkg.is_auto_installed))
+
+        only_on_system = set(installed_on_system.keys()) - set(installed_in_clone.keys())
+        if only_on_system:
+            print("Installed on the system but not in the clone-file:")
+            print(" ".join(sorted(only_on_system)))
+            print("\n")
+
+        only_in_clone =  set(installed_in_clone.keys()) - set(installed_on_system.keys())
+        if only_in_clone:
+            print("Installed in the clone-file but not in the system:")
+            print(" ".join(sorted(only_in_clone)))
+            print("\n")
+
+        # show version differences
+        pkgversion_differences = set()
+        for pkgname in sorted(installed_in_clone):
+            if not pkgname in installed_on_system:
+                continue
+            clone_file_pkgversion, clone_is_auto = installed_in_clone[pkgname]
+            system_pkgversion, sys_is_auto = installed_on_system[pkgname]
+            if clone_file_pkgversion != system_pkgversion:
+                pkgversion_differences.add(
+                    (pkgname, clone_file_pkgversion, system_pkgversion))
+        if pkgversion_differences:
+            print("Version differences: ")
+            print("Pkgname <clone-file-version> <system-version>")
+            for pkgname, clone_ver, system_ver in pkgversion_differences:
+                print(" %s  <%s>   <%s>" % (pkgname, clone_ver, system_ver)) 
+
 
     # restore
     def restore_state(self, statefile, targetdir="/", new_distro=None, protect_installed=False):

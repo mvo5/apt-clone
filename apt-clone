@@ -69,6 +69,14 @@ if __name__ == "__main__":
     command.add_argument("--destination", default="/")
     command.add_argument("--simulate", action="store_true", default=False)
     command.set_defaults(command="restore-new-distro")
+    # show-diff
+    command = subparser.add_parser(
+        "show-diff",
+        help="show the difference of a clone file from <source> to the system. "
+             "An alternative destination can be given with --destination.")
+    command.add_argument("source")
+    command.add_argument("--destination", default="/")
+    command.set_defaults(command="show-diff")
 
     # parse
     args = parser.parse_args()
@@ -96,6 +104,8 @@ if __name__ == "__main__":
             print("missing: %s" % ",".join(sorted(list(miss))))
         else:
             clone.restore_state(args.source, args.destination)
+    elif args.command == "show-diff":
+        clone.show_diff(args.source, args.destination)
     elif args.command == "restore-new-distro":
 
         # this is a bit of magic, the idea is that if we clone into a new

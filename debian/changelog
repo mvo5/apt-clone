@@ -6,6 +6,9 @@ apt-clone (0.2.3) UNRELEASED; urgency=low
       to Colin Watson)
     - bind mount /proc, /sys on restore to chroot (thanks to
       Colin Watson)
+  * apt_clone.py:
+    - implement a show-diff option to allowing one to see the differences
+      between a system and a clone file
 
   [ Colin Watson ]
   * Port to Python 3:
@@ -32,7 +35,7 @@ apt-clone (0.2.3) UNRELEASED; urgency=low
   * apt_clone.py:
     - if specified remove usernames and passwords from sources files
 
- -- Stéphane Graber <stgraber@ubuntu.com>  Tue, 12 Jun 2012 15:58:34 -0400
+ -- Brian Murray <brian@ubuntu.com>  Fri, 17 Aug 2012 11:22:33 -0700
 
 apt-clone (0.2.2) unstable; urgency=low
 
