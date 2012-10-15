@@ -4,6 +4,7 @@ apt-clone (0.2.4) UNRELEASED; urgency=low
   * apt_clone.py:
     - implement a show-diff option allowing one to see the differences
       between a system and a clone file
+  * add dep8 style testsuite
 
  -- Brian Murray <brian@ubuntu.com>  Fri, 17 Aug 2012 11:31:44 -0700
 
