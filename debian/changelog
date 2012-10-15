@@ -1,21 +1,14 @@
-apt-clone (0.2.4) UNRELEASED; urgency=low
+apt-clone (0.3) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * apt_clone.py:
     - implement a show-diff option allowing one to see the differences
       between a system and a clone file
-  * add dep8 style testsuite
-
- -- Brian Murray <brian@ubuntu.com>  Fri, 17 Aug 2012 11:31:44 -0700
-
-apt-clone (0.2.3) UNRELEASED; urgency=low
-
-  [ Michael Vogt ]
-  * apt_clone.py:
     - fix restoring of the clone with later apt versions (thanks
       to Colin Watson)
     - bind mount /proc, /sys on restore to chroot (thanks to
       Colin Watson)
+  * add dep8 style testsuite
 
   [ Colin Watson ]
   * Port to Python 3:
@@ -43,6 +36,21 @@ apt-clone (0.2.3) UNRELEASED; urgency=low
     - if specified remove usernames and passwords from sources files
 
  -- Stéphane Graber <stgraber@ubuntu.com>  Tue, 12 Jun 2012 15:58:34 -0400
+
+apt-clone (0.2.3~ubuntu2) quantal; urgency=low
+
+  * apt_clone.py:
+    - if specified remove usernames and passwords from sources files
+
+ -- Brian Murray <brian@ubuntu.com>  Mon, 02 Jul 2012 13:54:34 -0700
+
+apt-clone (0.2.3~ubuntu1) quantal; urgency=low
+
+  * Upload version from current bzr trunk (lp:apt-clone).
+    This version builds and uses python3 by default
+    (code still works with python2).
+
+ -- Stéphane Graber <stgraber@ubuntu.com>  Tue, 12 Jun 2012 17:28:21 -0400
 
 apt-clone (0.2.2) unstable; urgency=low
 
