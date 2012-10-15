@@ -79,11 +79,13 @@ class TestClone(unittest.TestCase):
         self.assertTrue("./etc/apt/preferences" in members)
         if clone.not_downloadable:
             self.assertEqual(clone.commands.repack_deb.called, with_dpkg_repack)
+        # ensure we have no duplicates in the sources.list.d
         sources_list_d = [p for p in members 
                           if p.startswith("./etc/apt/sources.list.d")]
         self.assertEqual(
-            set(sources_list_d),
-            set(['./etc/apt/sources.list.d', 
+            sorted(sources_list_d),
+            sorted(
+                ['./etc/apt/sources.list.d', 
                  './etc/apt/sources.list.d/ubuntu-mozilla-daily-ppa-maverick.list']))
 
     @mock.patch("apt_clone.LowLevelCommands")
