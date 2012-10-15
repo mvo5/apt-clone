@@ -37,6 +37,14 @@ apt-clone (0.3) UNRELEASED; urgency=low
 
  -- Stéphane Graber <stgraber@ubuntu.com>  Tue, 12 Jun 2012 15:58:34 -0400
 
+apt-clone (0.2.3~ubuntu3) quantal; urgency=low
+
+  * Ensure that /etc/apt/sources.list and /etc/apt/sources.list.d are put
+    at the right place in the tarball by stripping the apt "Dir" from the
+    absolute path of the file. (LP: #1066347)
+
+ -- Stéphane Graber <stgraber@ubuntu.com>  Mon, 15 Oct 2012 13:28:10 +0200
+
 apt-clone (0.2.3~ubuntu2) quantal; urgency=low
 
   * apt_clone.py:
