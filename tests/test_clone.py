@@ -124,14 +124,15 @@ class TestClone(unittest.TestCase):
         # create target dir
         targetdir = self.tempdir
         # status file from maverick (to simulate running on a maverick live-cd)
-        with open("./data/dpkg-status/dpkg-status-ubuntu-maverick") as fp:
-            s = fp.read()
+        with open("./data/dpkg-status/dpkg-status-ubuntu-maverick",
+                  "rb") as fp:
+            s = fp.read().decode("utf8")
         s = s.replace(
             "Architecture: i386",
             "Architecture: %s" % apt_pkg.config.find("Apt::Architecture"))
         path = os.path.join(targetdir, "var/lib/dpkg", "status")
-        with open(path, "w") as fp:
-            fp.write(s)
+        with open(path, "wb",) as fp:
+            fp.write(s.encode("utf-8"))
         # test upgrade clone from lucid system to maverick
         clone = AptClone(cache_cls=MockAptCache)
         clone.restore_state(
@@ -148,7 +149,8 @@ class TestClone(unittest.TestCase):
     def test_restore_state_simulate(self):
         clone = AptClone()
         missing = clone.simulate_restore_state("./data/apt-state.tar.gz")
-        self.assertEqual(list(missing), [])
+        # missing, because clone does not have universe enabled
+        self.assertEqual(list(missing), ['accerciser'])
 
     def test_restore_state_simulate_with_new_release(self):
         #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
@@ -159,7 +161,7 @@ class TestClone(unittest.TestCase):
         missing = clone.simulate_restore_state(
             "./data/apt-state-ubuntu-lucid.tar.gz", "maverick") 
         # FIXME: check that the stuff in missing is ok
-        print(missing)
+        #print(missing)
 
     def test_modified_conffiles(self):
         clone = AptClone()
@@ -188,7 +190,7 @@ class TestClone(unittest.TestCase):
         self.assertTrue("/etc/apt/sources.list" in unowned)
         # postivie test, belongs to base-files
         self.assertFalse("/etc/issue" in unowned)
-        print("\n".join(sorted(unowned)))
+        #print("\n".join(sorted(unowned)))
 
 if __name__ == "__main__":
     unittest.main()

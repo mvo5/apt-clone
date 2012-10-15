@@ -1,2 +1,2 @@
 Tests: run-tests
-Depends: @
+Depends: @, pyflakes, dep8, python-mock, python3-mock
