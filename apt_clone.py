@@ -226,21 +226,20 @@ class AptClone(object):
             tar.add(p, arcname="./etc/apt/trusted.gpg.d")
 
     def _write_state_sources_list(self, tar, scrub=False):
-        base_path = apt_pkg.config.find_dir("Dir").rstrip("/")
-
         sources_list = apt_pkg.config.find_file("Dir::Etc::sourcelist")
         self._add_file_to_tar_with_password_check(tar, sources_list, scrub,
-            sources_list.replace(base_path, ""))
+            "./etc/apt/sources.list")
         source_parts = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
         if os.path.exists(source_parts):
+            tar.add(source_parts, arcname="./etc/apt/sources.list.d",
+                    recursive=False)
             for source in os.listdir(source_parts):
                 sources_file_name = '%s/%s' % (source_parts, source)
                 self._add_file_to_tar_with_password_check(tar,
                     sources_file_name, scrub,
-                    sources_file_name.replace(base_path, ""))
+                    "./etc/apt/sources.list.d/"+source)
 
-    def _add_file_to_tar_with_password_check(self, tar, sources, scrub=False,
-                                                arcname=False):
+    def _add_file_to_tar_with_password_check(self, tar, sources, scrub, arcname):
         if scrub:
             with tempfile.NamedTemporaryFile(mode='w') as source_copy, open(sources, 'r') as f:
                 for line in f.readlines():
@@ -251,15 +250,9 @@ class AptClone(object):
                     else:
                         source_copy.write(line)
                     source_copy.flush()
-                if not arcname:
-                    tar.add(source_copy.name, arcname=".%s" % (sources))
-                else:
-                    tar.add(source_copy.name, arcname=arcname)
+                tar.add(source_copy.name, arcname=arcname)
         else:
-            if not arcname:
-                tar.add(sources, arcname='.%s' % sources)
-            else:
-                tar.add(sources, arcname=arcname)
+            tar.add(sources, arcname=arcname)
 
     def _write_modified_files_from_etc(self, tar):
         #etcdir = os.path.join(apt_pkg.config.get("Dir"), "etc")

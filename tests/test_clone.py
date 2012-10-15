@@ -12,11 +12,9 @@ import tarfile
 import tempfile
 import unittest
 
-from io import StringIO
-
-sys.path.insert(0, "..")
-import apt_clone
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from apt_clone import AptClone
+
 
 class MockAptCache(apt.Cache):
     def commit(self, fetchp, installp):
@@ -24,9 +22,16 @@ class MockAptCache(apt.Cache):
     def update(self, fetchp):
         pass
 
+
 class TestClone(unittest.TestCase):
 
     def setUp(self):
+        # clean custom apt config - once apt_pkg.config.clear() is exposed
+        # use that
+        for d in apt_pkg.config.keys():
+            apt_pkg.config.clear(d)
+        apt_pkg.init_config()
+        # setup our custom vars
         apt_pkg.config.set("Dir", "/")
         apt_pkg.config.set("dir::state::status", "/var/lib/dpkg/status")
         self.tempdir = tempfile.mkdtemp("apt-clone-tests")
@@ -74,6 +79,12 @@ class TestClone(unittest.TestCase):
         self.assertTrue("./etc/apt/preferences" in members)
         if clone.not_downloadable:
             self.assertEqual(clone.commands.repack_deb.called, with_dpkg_repack)
+        sources_list_d = [p for p in members 
+                          if p.startswith("./etc/apt/sources.list.d")]
+        self.assertEqual(
+            set(sources_list_d),
+            set(['./etc/apt/sources.list.d', 
+                 './etc/apt/sources.list.d/ubuntu-mozilla-daily-ppa-maverick.list']))
 
     @mock.patch("apt_clone.LowLevelCommands")
     def test_restore_state(self, mock_lowlevel):
@@ -131,12 +142,11 @@ class TestClone(unittest.TestCase):
             self.assertTrue("maverick" in fp.read())
         with open(sources_list) as fp:
             self.assertFalse("lucid" in fp.read())
-        
+
     def test_restore_state_simulate(self):
         clone = AptClone()
         missing = clone.simulate_restore_state("./data/apt-state.tar.gz")
-        # missing, because clone does not have universe enabled
-        self.assertEqual(list(missing), ["accerciser"])
+        self.assertEqual(list(missing), [])
 
     def test_restore_state_simulate_with_new_release(self):
         #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
