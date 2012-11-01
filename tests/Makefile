@@ -4,8 +4,8 @@ all: test
 test:
 	pyflakes ../apt-clone ../apt_clone.py
 	set -e; for f in *.py; do \
-		for ver in python3 python2; do \
-			PYTHONPATH=.. $$ver $$f; \
+		for ver in python3 python; do \
+			PYTHONPATH=.. $$ver $$f -v ; \
 		done; \
 	done; \
 	# cruft from the tests

@@ -1,4 +1,4 @@
-apt-clone (0.3) UNRELEASED; urgency=low
+apt-clone (0.3) experimental; urgency=low
 
   [ Michael Vogt ]
   * apt_clone.py:
@@ -35,7 +35,7 @@ apt-clone (0.3) UNRELEASED; urgency=low
   * apt_clone.py:
     - if specified remove usernames and passwords from sources files
 
- -- Stéphane Graber <stgraber@ubuntu.com>  Tue, 12 Jun 2012 15:58:34 -0400
+ -- Michael Vogt <mvo@debian.org>  Thu, 01 Nov 2012 10:18:59 +0100
 
 apt-clone (0.2.3~ubuntu3) quantal; urgency=low
 
