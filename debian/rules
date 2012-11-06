@@ -14,3 +14,6 @@ override_dh_auto_install:
 	set -ex; for python in $(shell py3versions -r); do \
 		$$python setup.py install --root=$(CURDIR)/debian/apt-clone --install-layout=deb; \
 	done
+
+override_dh_python3:
+	dh_python3 --shebang=/usr/bin/python3

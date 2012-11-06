@@ -1,3 +1,10 @@
+apt-clone (0.3.1~ubuntu1) raring; urgency=low
+
+  * Make sure #!/usr/bin/python3 is used, since dh_python3 stopped
+    overriding it.
+
+ -- Dmitrijs Ledkovs <dmitrij.ledkov@ubuntu.com>  Tue, 06 Nov 2012 14:54:54 +0000
+
 apt-clone (0.3) experimental; urgency=low
 
   [ Michael Vogt ]
