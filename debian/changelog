@@ -1,3 +1,12 @@
+apt-clone (0.3.1~ubuntu2) raring; urgency=low
+
+  * Added XS-Testsuite header
+  * Fixed ownership of testsuite data files
+  * Redirected test stderr to stdout. python unittest output goes to stderr
+    which adt-run considers as a failure. 
+
+ -- Jean-Baptiste Lallement <jean-baptiste.lallement@canonical.com>  Thu, 13 Dec 2012 16:20:02 +0100
+
 apt-clone (0.3.1~ubuntu1) raring; urgency=low
 
   * Make sure #!/usr/bin/python3 is used, since dh_python3 stopped
