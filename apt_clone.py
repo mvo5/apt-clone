@@ -235,6 +235,8 @@ class AptClone(object):
                     recursive=False)
             for source in os.listdir(source_parts):
                 sources_file_name = '%s/%s' % (source_parts, source)
+                if os.path.isdir(sources_file_name):
+                    continue
                 self._add_file_to_tar_with_password_check(tar,
                     sources_file_name, scrub,
                     "./etc/apt/sources.list.d/"+source)
