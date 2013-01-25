@@ -1,3 +1,9 @@
+apt-clone (0.3.1~ubuntu3) raring; urgency=low
+
+  * Do not include subdirectories in /etc/apt/sources.list.d/ (LP: #1077113)
+
+ -- Brian Murray <brian@ubuntu.com>  Fri, 25 Jan 2013 13:47:56 -0800
+
 apt-clone (0.3.1~ubuntu2) raring; urgency=low
 
   * Added XS-Testsuite header
