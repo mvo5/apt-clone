@@ -35,11 +35,11 @@ class TestCloneUpgrade(unittest.TestCase):
             logging.info("testing %s" % meta)
             old = self._create_fake_upgradable_root("maverick", meta=meta)
             # create statefile based on the old data
-            state = tarfile.open("lala.tar.gz", "w:gz")
-            state.add(
-                os.path.join(old, "var", "lib", "apt-clone", "installed.pkgs"),
-                arcname = "./var/lib/apt-clone/installed.pkgs")
-            state.close()
+            with tarfile.open("lala.tar.gz", "w:gz") as state:
+                state.add(
+                    os.path.join(old, "var", "lib", "apt-clone",
+                                 "installed.pkgs"),
+                    arcname = "./var/lib/apt-clone/installed.pkgs")
             # create new fake environment and try to upgrade
             new = self._create_fake_upgradable_root("natty", meta=meta)
             cache = apt.Cache(rootdir=new)

@@ -66,10 +66,10 @@ class TestClone(unittest.TestCase):
         # verify that we got the tarfile
         tarname = os.path.join(targetdir, clone.CLONE_FILENAME)
         self.assertTrue(os.path.exists(tarname))
-        tar = tarfile.open(tarname)
-        #print(tar.getmembers())
-        # verify members in tar
-        members = [m.name for m in tar.getmembers()]
+        with tarfile.open(tarname) as tar:
+            #print(tar.getmembers())
+            # verify members in tar
+            members = [m.name for m in tar.getmembers()]
         self.assertTrue("./etc/apt/sources.list" in members)
         self.assertTrue("./var/lib/apt-clone/installed.pkgs" in members)
         self.assertTrue("./var/lib/apt-clone/extended_states" in members)
