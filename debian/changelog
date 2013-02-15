@@ -10,6 +10,7 @@ apt-clone (0.3.1~ubuntu4) UNRELEASED; urgency=low
   * Make TestCloneUpgrade.test_clone_upgrade_synthetic perform a
     clone-upgrade between the last two supported releases of Ubuntu, rather
     than hardcoding maverick and natty (LP: #1112472).
+  * Don't leak a temporary directory from AptClone.simulate_restore_state.
 
  -- Colin Watson <cjwatson@ubuntu.com>  Fri, 15 Feb 2013 13:37:26 +0000
 

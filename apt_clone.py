@@ -494,6 +494,7 @@ class AptClone(object):
         cache.open()
         # try to replay cache and see thats missing
         missing = self._restore_package_selection_in_cache(statefile, cache)
+        shutil.rmtree(target)
         return missing
 
     def _restore_sources_list(self, statefile, targetdir):
