@@ -80,6 +80,8 @@ if __name__ == "__main__":
 
     # parse
     args = parser.parse_args()
+    if not hasattr(args, "command"):
+        parser.error("no command specified")
     if args.debug:
         import logging
         logging.basicConfig(level=logging.DEBUG)
