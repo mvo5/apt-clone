@@ -562,7 +562,7 @@ class AptClone(object):
                                 # normal mode, this assume the system is consistent
                                 cache[name].mark_install(from_user=from_user)
                         except SystemError as e:
-                            logging.warn("can't add %s (%s)" % (name, e))
+                            logging.warning("can't add %s (%s)" % (name, e))
                             missing.add(name)
                         # ensure the auto install info is
                         cache[name].mark_auto(auto_installed)
