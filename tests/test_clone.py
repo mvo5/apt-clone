@@ -80,12 +80,12 @@ class TestClone(unittest.TestCase):
         if clone.not_downloadable:
             self.assertEqual(clone.commands.repack_deb.called, with_dpkg_repack)
         # ensure we have no duplicates in the sources.list.d
-        sources_list_d = [p for p in members 
+        sources_list_d = [p for p in members
                           if p.startswith("./etc/apt/sources.list.d")]
         self.assertEqual(
             sorted(sources_list_d),
             sorted(
-                ['./etc/apt/sources.list.d', 
+                ['./etc/apt/sources.list.d',
                  './etc/apt/sources.list.d/ubuntu-mozilla-daily-ppa-maverick.list']))
 
     @mock.patch("apt_clone.LowLevelCommands")
@@ -115,7 +115,7 @@ class TestClone(unittest.TestCase):
 
     @mock.patch("apt_clone.LowLevelCommands")
     def test_restore_state_on_new_distro_release_livecd(self, mock_lowlevel):
-        """ 
+        """
         test lucid -> maverick apt-clone-ugprade as if it will be used
         from a live cd based upgrader
         """
@@ -136,7 +136,7 @@ class TestClone(unittest.TestCase):
         # test upgrade clone from lucid system to maverick
         clone = AptClone(cache_cls=MockAptCache)
         clone.restore_state(
-            "./data/apt-state-ubuntu-lucid.tar.gz", 
+            "./data/apt-state-ubuntu-lucid.tar.gz",
             targetdir,
             "maverick")
         sources_list = os.path.join(targetdir, "etc","apt","sources.list")
@@ -155,11 +155,11 @@ class TestClone(unittest.TestCase):
     def test_restore_state_simulate_with_new_release(self):
         #apt_pkg.config.set("Debug::PkgProblemResolver", "1")
         apt_pkg.config.set(
-            "Dir::state::status", 
+            "Dir::state::status",
             "./data/dpkg-status/dpkg-status-ubuntu-maverick")
         clone = AptClone()
         missing = clone.simulate_restore_state(
-            "./data/apt-state-ubuntu-lucid.tar.gz", "maverick") 
+            "./data/apt-state-ubuntu-lucid.tar.gz", "maverick")
         # FIXME: check that the stuff in missing is ok
         #print(missing)
 
@@ -172,7 +172,7 @@ class TestClone(unittest.TestCase):
     def test_unowned_in_etc(self):
         # test in mock environement
         apt_pkg.config.set(
-            "Dir::state::status", 
+            "Dir::state::status",
             "./data/mock-system/var/lib/dpkg/status")
         clone = AptClone()
         unowned = clone._find_unowned_in_etc("./data/mock-system")
@@ -181,7 +181,7 @@ class TestClone(unittest.TestCase):
         self.assertTrue("/etc/unowned-file" in unowned)
         # test on the real system and do very light checks
         apt_pkg.config.set(
-            "Dir::state::status", 
+            "Dir::state::status",
             "/var/lib/dpkg/status")
         unowned = clone._find_unowned_in_etc()
         #print(unowned)

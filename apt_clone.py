@@ -54,7 +54,7 @@ class LowLevelCommands(object):
             install_cmd.insert(1, targetdir)
         ret = subprocess.call(install_cmd + debfiles)
         return (ret == 0)
-        
+
     def repack_deb(self, pkgname, targetdir):
         """ dpkg-repack pkgname into targetdir """
         if not os.path.exists(self.dpkg_repack):
@@ -86,7 +86,7 @@ class LowLevelCommands(object):
     def bind_umount(self, binddir):
         ret = subprocess.call(["umount", binddir])
         return (ret == 0)
-        
+
 
 class AptClone(object):
     """ clone the package selection/installation of a existing system
@@ -98,7 +98,7 @@ class AptClone(object):
     CLONE_FILENAME = "apt-clone-state-%s.tar.gz" % os.uname()[1]
 
     TARPREFIX = "./"
-    
+
     def __init__(self, fetch_progress=None, install_progress=None,
                  cache_cls=None):
         self.not_downloadable = set()
@@ -167,7 +167,7 @@ class AptClone(object):
         host_info = self._get_host_info_dict()
         # save it
         f = tempfile.NamedTemporaryFile(mode='w')
-        info = "\n".join(["%s: %s" % (key, value) 
+        info = "\n".join(["%s: %s" % (key, value)
                           for (key, value) in host_info.items()])
         f.write(info+"\n")
         f.flush()
@@ -182,7 +182,7 @@ class AptClone(object):
                 s += "%s %s %s\n" % (
                     pkg.name, pkg.installed.version, int(pkg.is_auto_installed))
                 if not pkg.candidate or not pkg.candidate.downloadable:
-                    self.not_downloadable.add(pkg.name)        
+                    self.not_downloadable.add(pkg.name)
                 elif not (pkg.installed.downloadable and
                           pkg.candidate.downloadable):
                     self.version_mismatch.add(pkg.name)
@@ -373,7 +373,7 @@ class AptClone(object):
         for key in host_info:
             if host_info.get(key, None) != clone_info.get(key, None):
                 print(" '%s': clone='%s' system='%s'" % (
-                        key, clone_info.get(key, None), 
+                        key, clone_info.get(key, None),
                         host_info.get(key, None)))
         print("")
 
@@ -433,7 +433,7 @@ class AptClone(object):
             print("Version differences: ")
             print("Pkgname <clone-file-version> <system-version>")
             for pkgname, clone_ver, system_ver in pkgversion_differences:
-                print(" %s  <%s>   <%s>" % (pkgname, clone_ver, system_ver)) 
+                print(" %s  <%s>   <%s>" % (pkgname, clone_ver, system_ver))
 
 
     # restore
@@ -564,7 +564,7 @@ class AptClone(object):
                         except SystemError as e:
                             logging.warn("can't add %s (%s)" % (name, e))
                             missing.add(name)
-                        # ensure the auto install info is 
+                        # ensure the auto install info is
                         cache[name].mark_auto(auto_installed)
         # check what is broken and try to fix
         if cache.broken_count > 0:
@@ -711,12 +711,12 @@ class AptClone(object):
     def _dump_debconf_database(self, sourcedir):
         print("not implemented yet")
         # debconf-copydb configdb newdb --config=Name:newdb --config=Driver:File --config=Filename:/tmp/lala.db
-        # 
+        #
         # debconf-copydb newdb configdb --config=Name:newdb --config=Driver:File --config=Filename:/tmp/lala.db
-        # 
+        #
         # dump to text with:
         #  debconf-copydb configdb pipe --config=Name:pipe
         #                 --config=Driver:Pipe --config=InFd:none
-        # 
+        #
         # restore from text with:
         #   ssh remotehost debconf-copydb pipe configdb --config=Name:pipe --config=Driver:Pipe

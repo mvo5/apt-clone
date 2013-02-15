@@ -52,7 +52,7 @@ class TestCloneUpgrade(unittest.TestCase):
             shutil.rmtree(old)
             shutil.rmtree(new)
 
-    def _create_fake_upgradable_root(self, from_dist, 
+    def _create_fake_upgradable_root(self, from_dist,
                                      meta="ubuntu-desktop",
                                      tmpdir=None):
         if tmpdir is None:

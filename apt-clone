@@ -31,21 +31,21 @@ if __name__ == "__main__":
     subparser = parser.add_subparsers(title="Commands")
     # info
     command = subparser.add_parser(
-        "info", 
+        "info",
         help="info about a apt-clone archive")
     command.add_argument("source")
     command.set_defaults(command="info")
     # clone
     command = subparser.add_parser(
-        "clone", 
+        "clone",
         help="create a clone-file into <destination>. An alternative source dir can be specified with --source.")
     command.add_argument("--source", default="/",
-                         help="The source dir of the system or chroot, usually '/'") 
+                         help="The source dir of the system or chroot, usually '/'")
     command.add_argument("destination")
-    command.add_argument("--with-dpkg-repack", 
+    command.add_argument("--with-dpkg-repack",
                          action="store_true", default=False,
                          help="add no longer downloadable package to the state bundle (that can make it rather big)")
-    command.add_argument("--with-dpkg-status", 
+    command.add_argument("--with-dpkg-status",
                          action="store_true", default=False,
                          help="include full copy of dpkg-status file, mostly useful for debugging")
     command.set_defaults(command="clone")
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         info = clone.info(args.source)
         print(info)
     if args.command == "clone":
-        clone.save_state(args.source, args.destination, 
+        clone.save_state(args.source, args.destination,
                          args.with_dpkg_repack, args.with_dpkg_status)
         print("not installable: %s" % ", ".join(clone.not_downloadable))
         print("version mismatch: %s" % ", ".join(clone.version_mismatch))

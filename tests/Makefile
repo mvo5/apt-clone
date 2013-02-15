@@ -2,7 +2,7 @@
 all: test
 
 test:
-	sudo chown -R $$USER:$$USER .
+	#sudo chown -R $$USER:$$USER .
 	pyflakes ../apt-clone ../apt_clone.py
 	set -e; for f in *.py; do \
 		for ver in python3 python; do \
