@@ -1,4 +1,4 @@
-apt-clone (0.3.1~ubuntu4) UNRELEASED; urgency=low
+apt-clone (0.3.1~ubuntu4) raring; urgency=low
 
   * Make better use of context managers, fixing various resource leaks.
   * Remove unused imports from tests.
@@ -15,7 +15,7 @@ apt-clone (0.3.1~ubuntu4) UNRELEASED; urgency=low
   * If no command is specified on the command line, fail cleanly with an
     error message rather than crashing (LP: #1111115).
 
- -- Colin Watson <cjwatson@ubuntu.com>  Fri, 15 Feb 2013 13:37:26 +0000
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 15 Feb 2013 22:45:32 +0000
 
 apt-clone (0.3.1~ubuntu3) raring; urgency=low
 
