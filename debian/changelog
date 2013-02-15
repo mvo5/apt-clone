@@ -7,6 +7,9 @@ apt-clone (0.3.1~ubuntu4) UNRELEASED; urgency=low
     regression test against a tarball created based on a specific (now
     obsolete) version of Ubuntu, and will need considerable effort to
     update.
+  * Make TestCloneUpgrade.test_clone_upgrade_synthetic perform a
+    clone-upgrade between the last two supported releases of Ubuntu, rather
+    than hardcoding maverick and natty (LP: #1112472).
 
  -- Colin Watson <cjwatson@ubuntu.com>  Fri, 15 Feb 2013 13:37:26 +0000
 

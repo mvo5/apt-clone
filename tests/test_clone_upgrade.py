@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import apt
 import logging
 import os
 import shutil
@@ -8,6 +7,9 @@ import sys
 import tarfile
 import tempfile
 import unittest
+
+import apt
+import distro_info
 
 sys.path.insert(0, "..")
 from apt_clone import AptClone
@@ -28,10 +30,11 @@ class TestCloneUpgrade(unittest.TestCase):
 
     def test_clone_upgrade_synthetic(self):
         """ test clone upgrade with on-the-fly generated chroots """
+        supported = distro_info.UbuntuDistroInfo().supported()
         for meta in ["ubuntu-standard", "ubuntu-desktop", "kubuntu-desktop",
                      "xubuntu-desktop"]:
             logging.info("testing %s" % meta)
-            old = self._create_fake_upgradable_root("maverick", meta=meta)
+            old = self._create_fake_upgradable_root(supported[-2], meta=meta)
             # create statefile based on the old data
             with tarfile.open("lala.tar.gz", "w:gz") as state:
                 state.add(
@@ -39,7 +42,7 @@ class TestCloneUpgrade(unittest.TestCase):
                                  "installed.pkgs"),
                     arcname = "./var/lib/apt-clone/installed.pkgs")
             # create new fake environment and try to upgrade
-            new = self._create_fake_upgradable_root("natty", meta=meta)
+            new = self._create_fake_upgradable_root(supported[-1], meta=meta)
             cache = apt.Cache(rootdir=new)
             clone = AptClone()
             clone._restore_package_selection_in_cache("lala.tar.gz", cache, protect_installed=True)
