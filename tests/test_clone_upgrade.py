@@ -22,6 +22,7 @@ class TestCloneUpgrade(unittest.TestCase):
     def test_clone_upgrade_regression(self):
         """ regression test against known installs """
         new = self._create_fake_upgradable_root("natty", meta="ubuntu-desktop")
+        self.addCleanup(shutil.rmtree, new)
         cache = apt.Cache(rootdir=new)
         clone = AptClone()
         clone._restore_package_selection_in_cache(
@@ -35,6 +36,7 @@ class TestCloneUpgrade(unittest.TestCase):
                      "xubuntu-desktop"]:
             logging.info("testing %s" % meta)
             old = self._create_fake_upgradable_root(supported[-2], meta=meta)
+            self.addCleanup(shutil.rmtree, old)
             # create statefile based on the old data
             with tarfile.open("lala.tar.gz", "w:gz") as state:
                 state.add(
@@ -43,15 +45,13 @@ class TestCloneUpgrade(unittest.TestCase):
                     arcname = "./var/lib/apt-clone/installed.pkgs")
             # create new fake environment and try to upgrade
             new = self._create_fake_upgradable_root(supported[-1], meta=meta)
+            self.addCleanup(shutil.rmtree, new)
             cache = apt.Cache(rootdir=new)
             clone = AptClone()
             clone._restore_package_selection_in_cache("lala.tar.gz", cache, protect_installed=True)
             self.assertFalse(cache[meta].marked_delete,
                              "package %s marked for removal" % meta)
             self.assertTrue(len(cache.get_changes()) > 0)
-            # cleanup
-            shutil.rmtree(old)
-            shutil.rmtree(new)
 
     def _create_fake_upgradable_root(self, from_dist,
                                      meta="ubuntu-desktop",
