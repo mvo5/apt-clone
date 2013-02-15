@@ -9,10 +9,7 @@ import tarfile
 import tempfile
 import unittest
 
-from io import StringIO
-
 sys.path.insert(0, "..")
-import apt_clone
 from apt_clone import AptClone
 
 #apt.apt_pkg.config.set("Debug::pkgProblemResolver", "1")

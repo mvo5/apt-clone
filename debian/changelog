@@ -1,6 +1,7 @@
 apt-clone (0.3.1~ubuntu4) UNRELEASED; urgency=low
 
   * Make better use of context managers, fixing various resource leaks.
+  * Remove unused imports from tests.
 
  -- Colin Watson <cjwatson@ubuntu.com>  Fri, 15 Feb 2013 13:37:26 +0000
 
