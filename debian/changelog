@@ -1,3 +1,10 @@
+apt-clone (0.3.1~ubuntu5) UNRELEASED; urgency=low
+
+  * Avoid using "sudo chown" in tests if all files are already owned by the
+    calling user.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 01 Jul 2013 15:23:40 +0100
+
 apt-clone (0.3.1~ubuntu4) raring; urgency=low
 
   * Make better use of context managers, fixing various resource leaks.
