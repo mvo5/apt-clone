@@ -11,6 +11,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+import distro_info
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from apt_clone import AptClone
@@ -148,7 +149,9 @@ class TestClone(unittest.TestCase):
 
     def test_restore_state_simulate(self):
         clone = AptClone()
-        missing = clone.simulate_restore_state("./data/apt-state.tar.gz")
+        supported = distro_info.UbuntuDistroInfo().supported()
+
+        missing = clone.simulate_restore_state("./data/apt-state.tar.gz", new_distro=supported[-1])
         # missing, because clone does not have universe enabled
         self.assertEqual(list(missing), ['accerciser'])
 
