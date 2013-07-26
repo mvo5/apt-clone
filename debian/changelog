@@ -1,4 +1,4 @@
-apt-clone (0.3.1~ubuntu5) UNRELEASED; urgency=low
+apt-clone (0.3.1~ubuntu5) saucy; urgency=low
 
   [ Colin Watson ]
   * Avoid using "sudo chown" in tests if all files are already owned by the
@@ -11,7 +11,7 @@ apt-clone (0.3.1~ubuntu5) UNRELEASED; urgency=low
   * Fix to work correctly when running in a non-UTF8 locale and UTF8 filenames
     are present in the dpkg database.
 
- -- Colin Watson <cjwatson@ubuntu.com>  Mon, 01 Jul 2013 15:23:40 +0100
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Fri, 26 Jul 2013 19:43:49 +0000
 
 apt-clone (0.3.1~ubuntu4) raring; urgency=low
 
