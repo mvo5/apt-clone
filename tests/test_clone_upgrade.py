@@ -7,6 +7,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+import io
 
 import apt
 import distro_info
@@ -76,7 +77,7 @@ deb http://archive.ubuntu.com/ubuntu %s main restricted universe multiverse
             dpkg_status = os.path.join(tmpdir, "var", "lib", "dpkg", "status")
             if not os.path.exists(os.path.dirname(dpkg_status)):
                 os.makedirs(os.path.dirname(dpkg_status))
-            with open(dpkg_status, "w") as dpkg:
+            with io.open(dpkg_status, "w", encoding="utf-8") as dpkg:
                 with open(installed_pkgs, "w") as installed:
                     for pkg in cache:
                         if pkg.marked_install:
@@ -84,7 +85,9 @@ deb http://archive.ubuntu.com/ubuntu %s main restricted universe multiverse
                             s = s.replace("Package: %s\n" % pkg.name,
                                           "Package: %s\n%s\n" % (
                                     pkg.name, "Status: install ok installed"))
-                            dpkg.write("%s\n" % s)
+                            if sys.version < '3':
+                                s = unicode(s, encoding='utf-8')
+                            dpkg.write(u"%s\n" % s)
                             installed.write("%s %s %s\n" % (pkg.name,
                                                             pkg.candidate.version,
                                                             int(pkg.is_auto_installed)))

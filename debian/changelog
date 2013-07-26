@@ -8,6 +8,8 @@ apt-clone (0.3.1~ubuntu5) UNRELEASED; urgency=low
   * TestClone.test_restore_state_simulate: update to use distro_info like
     TestCloneUpgrade.test_clone_upgrade_synthetic does, now that natty is
     EOL.
+  * Fix to work correctly when running in a non-UTF8 locale and UTF8 filenames
+    are present in the dpkg database.
 
  -- Colin Watson <cjwatson@ubuntu.com>  Mon, 01 Jul 2013 15:23:40 +0100
 

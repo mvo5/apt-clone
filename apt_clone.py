@@ -33,7 +33,7 @@ import tarfile
 import tempfile
 import time
 
-from io import BytesIO
+from io import BytesIO, open
 
 if "APT_CLONE_DEBUG_RESOLVER" in os.environ:
     apt_pkg.config.set("Debug::pkgProblemResolver", "1")
@@ -661,7 +661,7 @@ class AptClone(object):
         owned = set()
         dpkg_basedir = os.path.dirname(apt_pkg.config.get("Dir::State::status"))
         for f in glob.glob(os.path.join(dpkg_basedir, "info", "*.list")):
-            with open(f) as fp:
+            with open(f, encoding="utf-8") as fp:
                 for line in fp:
                     if line.startswith("/etc/"):
                         owned.add(line.strip())
