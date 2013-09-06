@@ -242,14 +242,18 @@ class AptClone(object):
 
     def _add_file_to_tar_with_password_check(self, tar, sources, scrub, arcname):
         if scrub:
-            with tempfile.NamedTemporaryFile(mode='w') as source_copy, open(sources, 'r') as f:
+            with tempfile.NamedTemporaryFile(mode='wb') as source_copy, open(sources, 'r') as f:
                 for line in f.readlines():
                     if re.search('/[^/@:]*:[^/@:]*@', line):
-                        scrubbed_line = re.sub('/[^/@:]*:[^/@:]*@',
+                        line = re.sub('/[^/@:]*:[^/@:]*@',
                             '/USERNAME:PASSWORD@', line)
-                        source_copy.write(scrubbed_line)
-                    else:
-                        source_copy.write(line)
+                    # tempfile.NamedTemporaryFile cannot easily be made to
+                    # open in Unicode mode in Python 2.  We can remove this
+                    # once ubuntu-release-upgrader is run under Python 3
+                    # (i.e. after Ubuntu 14.04).
+                    if line is not bytes:
+                        line = line.encode("UTF-8")
+                    source_copy.write(line)
                     source_copy.flush()
                 tar.add(source_copy.name, arcname=arcname)
         else:
