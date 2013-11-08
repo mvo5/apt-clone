@@ -1,3 +1,9 @@
+apt-clone (0.3.1~ubuntu7) UNRELEASED; urgency=low
+
+  * When restoring /etc/apt/sources.list set the permissions to 644.
+
+ -- Brian Murray <brian@ubuntu.com>  Thu, 07 Nov 2013 16:43:01 -0800
+
 apt-clone (0.3.1~ubuntu6) saucy; urgency=low
 
   * Properly handle unicode when rewriting source files, thanks to Colin

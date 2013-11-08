@@ -28,6 +28,7 @@ import logging
 import os
 import re
 import shutil
+import stat
 import subprocess
 import tarfile
 import tempfile
@@ -507,6 +508,8 @@ class AptClone(object):
             if os.path.exists(existing):
                 shutil.copy(existing, '%s.apt-clone' % existing)
             tar.extract(self.TARPREFIX+"etc/apt/sources.list", targetdir)
+            os.chmod(targetdir+"etc/apt/sources.list", stat.S_IRUSR |
+                stat.S_IWUSR |stat.S_IRGRP | stat.S_IROTH)
             try:
                 tar.extract(self.TARPREFIX+"etc/apt/sources.list.d", targetdir)
             except KeyError:
