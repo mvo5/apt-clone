@@ -234,6 +234,10 @@ class AptClone(object):
             tar.add(source_parts, arcname="./etc/apt/sources.list.d",
                     recursive=False)
             for source in os.listdir(source_parts):
+                if source.startswith('.'):
+                    continue
+                if not source.endswith('.list'):
+                    continue
                 sources_file_name = '%s/%s' % (source_parts, source)
                 if os.path.isdir(sources_file_name):
                     continue
