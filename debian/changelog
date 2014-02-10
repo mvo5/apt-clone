@@ -1,10 +1,10 @@
-apt-clone (0.3.1~ubuntu7) UNRELEASED; urgency=low
+apt-clone (0.3.1~ubuntu7) trusty; urgency=low
 
   * When restoring /etc/apt/sources.list set the permissions to 644.
   * Do not backup hidden files in /etc/apt/sources.list.d/ and only
     back up .list files (LP: #1254447)
 
- -- Brian Murray <brian@ubuntu.com>  Thu, 07 Nov 2013 16:43:01 -0800
+ -- Brian Murray <brian@ubuntu.com>  Mon, 10 Feb 2014 08:32:57 -0800
 
 apt-clone (0.3.1~ubuntu6) saucy; urgency=low
 
