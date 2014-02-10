@@ -1,8 +1,8 @@
-apt-clone (0.3.1~ubuntu8) UNRELEASED; urgency=medium
+apt-clone (0.3.1~ubuntu8) trusty; urgency=medium
 
   * Fix path for setting permissions of restored /etc/apt/sources.list
 
- -- Brian Murray <brian@ubuntu.com>  Mon, 10 Feb 2014 10:34:56 -0800
+ -- Brian Murray <brian@ubuntu.com>  Mon, 10 Feb 2014 10:36:19 -0800
 
 apt-clone (0.3.1~ubuntu7) trusty; urgency=low
 
