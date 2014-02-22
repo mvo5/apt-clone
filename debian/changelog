@@ -1,3 +1,14 @@
+apt-clone (0.3.1~ubuntu10) trusty; urgency=low
+
+  [ Brian Murray ]
+  * lp:~brian-murray/apt-clone/test_clone_upgrade_ports:
+    - fix test failure for armhf
+  
+  [ Michael Vogt ]
+  * fix test failure for ppc64el
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Sat, 22 Feb 2014 09:22:02 +0100
+
 apt-clone (0.3.1~ubuntu9) trusty; urgency=medium
 
   * tests/data/apt-state.tar.gz: remove 'acpi-support' from the test case,
