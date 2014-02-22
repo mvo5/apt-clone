@@ -55,6 +55,20 @@ class TestCloneUpgrade(unittest.TestCase):
                              "package %s marked for removal" % meta)
             self.assertTrue(len(cache.get_changes()) > 0)
 
+    def _ensure_arch_available_on_server(self, server, from_dist, arch):
+        # py2/py3 compat
+        try:
+            from urllib.request import urlopen
+        except ImportError:
+            from urllib import urlopen
+            urlopen  # pyflakes
+        uri = "http://%s/dists/%s/main/binary-%s/" % (server, from_dist, arch)
+        try:
+            fp = urlopen(uri)
+            fp.close()
+        except IOError:
+            return self.skipTest("can not find %s" % uri)
+
     def _create_fake_upgradable_root(self, from_dist,
                                      meta="ubuntu-desktop",
                                      tmpdir=None):
@@ -63,13 +77,14 @@ class TestCloneUpgrade(unittest.TestCase):
         sources_list = os.path.join(tmpdir, "etc", "apt", "sources.list")
         if not os.path.exists(os.path.dirname(sources_list)):
             os.makedirs(os.path.dirname(sources_list))
-        # this still won't work for new architectures like ppc64el
-        # as they don't exist for from_dist
         arch = apt_pkg.config.find("APT::Architecture")
         if arch in ['i386', 'amd64']:
             server = 'archive.ubuntu.com/ubuntu'
         else:
             server = 'ports.ubuntu.com/ubuntu-ports'
+        # check that the server actually has the given arch, this may not
+        # be the case if a architecture is new (like ppc64el)
+        self._ensure_arch_available_on_server(server, from_dist, arch)
         with open(os.path.join(sources_list), "w") as fp:
             fp.write("""
 deb http://%s %s main restricted universe multiverse
