@@ -1,3 +1,11 @@
+apt-clone (0.3.1~ubuntu9) trusty; urgency=medium
+
+  * tests/data/apt-state.tar.gz: remove 'acpi-support' from the test case,
+    since this package is arch-specific and we want our tests to work
+    consistently across archs.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 20 Feb 2014 16:57:55 -0800
+
 apt-clone (0.3.1~ubuntu8) trusty; urgency=medium
 
   * Fix path for setting permissions of restored /etc/apt/sources.list
