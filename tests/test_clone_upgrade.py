@@ -10,6 +10,7 @@ import unittest
 import io
 
 import apt
+import apt_pkg
 import distro_info
 
 sys.path.insert(0, "..")
@@ -62,10 +63,17 @@ class TestCloneUpgrade(unittest.TestCase):
         sources_list = os.path.join(tmpdir, "etc", "apt", "sources.list")
         if not os.path.exists(os.path.dirname(sources_list)):
             os.makedirs(os.path.dirname(sources_list))
+        # this still won't work for new architectures like ppc64el
+        # as they don't exist for from_dist
+        arch = apt_pkg.config.find("APT::Architecture")
+        if arch in ['i386', 'amd64']:
+            server = 'archive.ubuntu.com/ubuntu'
+        else:
+            server = 'ports.ubuntu.com/ubuntu-ports'
         with open(os.path.join(sources_list), "w") as fp:
             fp.write("""
-deb http://archive.ubuntu.com/ubuntu %s main restricted universe multiverse
-""" % from_dist)
+deb http://%s %s main restricted universe multiverse
+""" % (server, from_dist))
         cache = apt.Cache(rootdir=tmpdir)
         cache.update()
         cache.open()
