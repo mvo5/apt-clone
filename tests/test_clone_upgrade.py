@@ -68,6 +68,8 @@ class TestCloneUpgrade(unittest.TestCase):
             fp.close()
         except IOError:
             return self.skipTest("can not find %s" % uri)
+        if fp.getcode() == 404:
+            return self.skipTest("can not find %s" % uri)
 
     def _create_fake_upgradable_root(self, from_dist,
                                      meta="ubuntu-desktop",

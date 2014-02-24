@@ -1,3 +1,10 @@
+apt-clone (0.3.1~ubuntu11) UNRELEASED; urgency=medium
+
+  * lp:~brian-murray/apt-clone/test_clone_upgrade_ports:
+    - fix test failure for ppc64el
+
+ -- Brian Murray <brian@ubuntu.com>  Mon, 24 Feb 2014 08:24:54 -0800
+
 apt-clone (0.3.1~ubuntu10) trusty; urgency=low
 
   [ Brian Murray ]
