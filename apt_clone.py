@@ -507,7 +507,7 @@ class AptClone(object):
         shutil.rmtree(target)
         return missing
 
-    def _restore_sources_list(self, statefile, targetdir, mirror):
+    def _restore_sources_list(self, statefile, targetdir, mirror=None):
         with tarfile.open(statefile) as tar:
             existing = os.path.join(targetdir, "etc", "apt", "sources.list")
             if os.path.exists(existing):
