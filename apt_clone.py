@@ -446,7 +446,8 @@ class AptClone(object):
 
 
     # restore
-    def restore_state(self, statefile, targetdir="/", new_distro=None, protect_installed=False):
+    def restore_state(self, statefile, targetdir="/", mirror=None,
+                      new_distro=None, protect_installed=False):
         """ take a statefile produced via (like apt-state.tar.gz)
             save_state() and restore the packages/repositories
             into targetdir (that is usually "/")
@@ -466,7 +467,7 @@ class AptClone(object):
             distro = self._get_info_distro(statefile)
             self.commands.debootstrap(targetdir, distro)
 
-        self._restore_sources_list(statefile, targetdir)
+        self._restore_sources_list(statefile, targetdir, mirror)
         self._restore_apt_keyring(statefile, targetdir)
         if new_distro:
             self._rewrite_sources_list(targetdir, new_distro)
@@ -506,7 +507,7 @@ class AptClone(object):
         shutil.rmtree(target)
         return missing
 
-    def _restore_sources_list(self, statefile, targetdir):
+    def _restore_sources_list(self, statefile, targetdir, mirror):
         with tarfile.open(statefile) as tar:
             existing = os.path.join(targetdir, "etc", "apt", "sources.list")
             if os.path.exists(existing):
@@ -515,6 +516,14 @@ class AptClone(object):
             td_sources = os.path.join(targetdir, "etc", "apt", "sources.list")
             os.chmod(td_sources, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP |
                      stat.S_IROTH)
+            if mirror:
+                from aptsources.sourceslist import SourcesList
+                apt_pkg.config.set("Dir::Etc::sourcelist", td_sources)
+                sources = SourcesList()
+                for entry in sources.list[:]:
+                    if entry.uri != mirror:
+                       entry.uri = mirror
+                sources.save()
             try:
                 tar.extract(self.TARPREFIX+"etc/apt/sources.list.d", targetdir)
             except KeyError:

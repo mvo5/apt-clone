@@ -1,3 +1,10 @@
+apt-clone (0.3.1~ubuntu12) UNRELEASED; urgency=medium
+
+  * Add an option to replace the mirror used in /etc/apt/sources.list with one
+    of your choosing. (LP: #1290584)
+
+ -- Brian Murray <brian@ubuntu.com>  Tue, 11 Mar 2014 08:39:45 -0700
+
 apt-clone (0.3.1~ubuntu11) trusty; urgency=medium
 
   * lp:~brian-murray/apt-clone/test_clone_upgrade_ports:
