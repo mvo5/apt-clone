@@ -446,8 +446,8 @@ class AptClone(object):
 
 
     # restore
-    def restore_state(self, statefile, targetdir="/", mirror=None,
-                      new_distro=None, protect_installed=False):
+    def restore_state(self, statefile, targetdir="/", new_distro=None,
+                      protect_installed=False, mirror=None):
         """ take a statefile produced via (like apt-state.tar.gz)
             save_state() and restore the packages/repositories
             into targetdir (that is usually "/")
@@ -467,7 +467,7 @@ class AptClone(object):
             distro = self._get_info_distro(statefile)
             self.commands.debootstrap(targetdir, distro)
 
-        self._restore_sources_list(statefile, targetdir, mirror)
+        self._restore_sources_list(statefile, targetdir, mirror=mirror)
         self._restore_apt_keyring(statefile, targetdir)
         if new_distro:
             self._rewrite_sources_list(targetdir, new_distro)

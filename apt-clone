@@ -106,7 +106,7 @@ if __name__ == "__main__":
             miss = clone.simulate_restore_state(args.source)
             print("missing: %s" % ",".join(sorted(list(miss))))
         else:
-            clone.restore_state(args.source, args.destination, args.mirror)
+            clone.restore_state(args.source, args.destination, mirror=args.mirror)
     elif args.command == "show-diff":
         clone.show_diff(args.source, args.destination)
     elif args.command == "restore-new-distro":
