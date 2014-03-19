@@ -56,6 +56,9 @@ if __name__ == "__main__":
     command.add_argument("source")
     command.add_argument("--destination", default="/")
     command.add_argument("--simulate", action="store_true", default=False)
+    command.add_argument(
+        "--rewrite-server",
+        help="rewrite all URIs in sources.list to the specified url")
     command.set_defaults(command="restore")
     # restore on new distro
     command = subparser.add_parser(
@@ -105,7 +108,8 @@ if __name__ == "__main__":
             miss = clone.simulate_restore_state(args.source)
             print("missing: %s" % ",".join(sorted(list(miss))))
         else:
-            clone.restore_state(args.source, args.destination)
+            clone.restore_state(args.source, args.destination,
+                                mirror=args.rewrite_server)
     elif args.command == "show-diff":
         clone.show_diff(args.source, args.destination)
     elif args.command == "restore-new-distro":
