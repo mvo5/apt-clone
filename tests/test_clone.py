@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 
 import apt
@@ -194,6 +194,7 @@ class TestClone(unittest.TestCase):
         # postivie test, belongs to base-files
         self.assertFalse("/etc/issue" in unowned)
         #print("\n".join(sorted(unowned)))
+
 
 if __name__ == "__main__":
     unittest.main()
