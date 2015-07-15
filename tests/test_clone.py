@@ -73,6 +73,7 @@ class TestClone(unittest.TestCase):
             members = [m.name for m in tar.getmembers()]
         self.assertTrue("./etc/apt/sources.list" in members)
         self.assertTrue("./var/lib/apt-clone/installed.pkgs" in members)
+        self.assertTrue("./var/lib/apt-clone/foreign.pkgs" in members)
         self.assertTrue("./var/lib/apt-clone/extended_states" in members)
         self.assertTrue("./var/lib/apt-clone/dpkg-status" in members)
         self.assertTrue("./etc/apt/sources.list.d" in members)

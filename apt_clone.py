@@ -177,6 +177,7 @@ class AptClone(object):
     def _write_state_installed_pkgs(self, sourcedir, tar):
         cache = self._cache_cls(rootdir=sourcedir)
         s = ""
+        foreign = ""
         for pkg in cache:
             if pkg.is_installed:
                 # a version identifies the pacakge
@@ -187,12 +188,25 @@ class AptClone(object):
                 elif not (pkg.installed.downloadable and
                           pkg.candidate.downloadable):
                     self.version_mismatch.add(pkg.name)
+                for o in pkg.installed.origins:
+                    import lsb_release
+                    distro_id = lsb_release.get_distro_information()['ID']
+                    if o.origin != distro_id:
+                        foreign += "%s %s %s\n" % (
+                            pkg.name, pkg.installed.version, o.origin)
+                    break
         # store the installed.pkgs
         tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
         s = s.encode('utf-8')
         tarinfo.size = len(s)
         tarinfo.mtime = time.time()
         tar.addfile(tarinfo, BytesIO(s))
+        # store the foreign packages
+        tarinfo = tarfile.TarInfo("./var/lib/apt-clone/foreign.pkgs")
+        foreign = foreign.encode('utf-8')
+        tarinfo.size = len(foreign)
+        tarinfo.mtime = time.time()
+        tar.addfile(tarinfo, BytesIO(foreign))
 
     def _write_state_dpkg_status(self, tar):
         # store dpkg-status, this is not strictly needed as installed.pkgs
