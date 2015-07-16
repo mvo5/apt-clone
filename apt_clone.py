@@ -196,7 +196,7 @@ class AptClone(object):
                     if o.origin != distro_id:
                         foreign += "%s %s %s\n" % (
                             pkg.name, pkg.installed.version,
-                            o.origin if o.origin != "" else "deb-install")
+                            o.origin if o.origin != "" else "unknown")
                     break
         # store the installed.pkgs
         tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
