@@ -189,11 +189,14 @@ class AptClone(object):
                           pkg.candidate.downloadable):
                     self.version_mismatch.add(pkg.name)
                 for o in pkg.installed.origins:
+                    if o.archive == "now" and o.origin == "":
+                        continue
                     import lsb_release
                     distro_id = lsb_release.get_distro_information()['ID']
                     if o.origin != distro_id:
                         foreign += "%s %s %s\n" % (
-                            pkg.name, pkg.installed.version, o.origin)
+                            pkg.name, pkg.installed.version,
+                            o.origin if o.origin != "" else "deb-install")
                     break
         # store the installed.pkgs
         tarinfo = tarfile.TarInfo("./var/lib/apt-clone/installed.pkgs")
