@@ -60,6 +60,8 @@ if __name__ == "__main__":
     command.add_argument(
         "--rewrite-server",
         help="rewrite all URIs in sources.list to the specified url")
+    command.add_argument("--exclude", nargs='+',
+                         help="exclude the listed package names from the restore")
     command.set_defaults(command="restore")
     # restore on new distro
     command = subparser.add_parser(
@@ -106,10 +108,11 @@ if __name__ == "__main__":
                   "those packges in the clone file.")
     elif args.command == "restore":
         if args.simulate:
-            miss = clone.simulate_restore_state(args.source)
+            miss = clone.simulate_restore_state(args.source, args.exclude)
             print("missing: %s" % ",".join(sorted(list(miss))))
         else:
             clone.restore_state(args.source, args.destination,
+                                args.exclude,
                                 mirror=args.rewrite_server)
     elif args.command == "show-diff":
         clone.show_diff(args.source, args.destination)

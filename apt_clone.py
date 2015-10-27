@@ -464,8 +464,8 @@ class AptClone(object):
 
 
     # restore
-    def restore_state(self, statefile, targetdir="/", new_distro=None,
-                      protect_installed=False, mirror=None):
+    def restore_state(self, statefile, targetdir="/", exclude_pkgs=None,
+                      new_distro=None, protect_installed=False, mirror=None):
         """ take a statefile produced via (like apt-state.tar.gz)
             save_state() and restore the packages/repositories
             into targetdir (that is usually "/")
@@ -489,7 +489,7 @@ class AptClone(object):
         self._restore_apt_keyring(statefile, targetdir)
         if new_distro:
             self._rewrite_sources_list(targetdir, new_distro)
-        self._restore_package_selection(statefile, targetdir, protect_installed)
+        self._restore_package_selection(statefile, targetdir, protect_installed, exclude_pkgs)
         # FIXME: this needs to check if there are conflicts, e.g. via
         #        gdebi
         self._restore_not_downloadable_debs(statefile, targetdir)
@@ -500,7 +500,7 @@ class AptClone(object):
             self.commands.bind_umount(os.path.join(targetdir, "sys"))
 
     # simulate restore and return list of missing pkgs
-    def simulate_restore_state(self, statefile, new_distro=None):
+    def simulate_restore_state(self, statefile, exclude_pkgs, new_distro=None):
         # create tmp target (with host system dpkg-status) to simulate in
         target = tempfile.mkdtemp()
         dpkg_status = apt_pkg.config.find_file("dir::state::status")
@@ -521,7 +521,7 @@ class AptClone(object):
             pass
         cache.open()
         # try to replay cache and see thats missing
-        missing = self._restore_package_selection_in_cache(statefile, cache)
+        missing = self._restore_package_selection_in_cache(statefile, cache, exclude_pkgs=exclude_pkgs)
         shutil.rmtree(target)
         return missing
 
@@ -565,7 +565,11 @@ class AptClone(object):
                 self.commands.merge_keys(backup, existing)
                 os.remove(backup)
 
-    def _restore_package_selection_in_cache(self, statefile, cache, protect_installed=False):
+    def _restore_package_selection_in_cache(self, statefile, cache, protect_installed=False, exclude_pkgs=None):
+        # deal with excludes
+        if exclude_pkgs is None:
+            exclude_pkgs = []
+        exclude_pkgs = set(exclude_pkgs)
         # reinstall packages
         missing = set()
         pkgs = set()
@@ -586,6 +590,8 @@ class AptClone(object):
                     if line.startswith("#") or line == "":
                         continue
                     (name, version, auto) = line.split()
+                    if name in exclude_pkgs:
+                        continue
                     pkgs.add(name)
                     auto_installed = int(auto)
                     from_user = not auto_installed
@@ -618,7 +624,7 @@ class AptClone(object):
                 missing.add(pkg)
         return missing
 
-    def _restore_package_selection(self, statefile, targetdir, protect_installed):
+    def _restore_package_selection(self, statefile, targetdir, protect_installed, exclude_pkgs):
         # create new cache
         cache = self._cache_cls(rootdir=targetdir)
         # python-apt Cache(rootdir=) will mangle dir::bin, fix that
@@ -631,7 +637,7 @@ class AptClone(object):
             # a fatal error.
             pass
         cache.open()
-        self._restore_package_selection_in_cache(statefile, cache, protect_installed)
+        self._restore_package_selection_in_cache(statefile, cache, protect_installed, exclude_pkgs)
         # do it
         cache.commit(self.fetch_progress, self.install_progress)
 
