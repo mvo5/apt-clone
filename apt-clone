@@ -60,7 +60,7 @@ if __name__ == "__main__":
     command.add_argument(
         "--rewrite-server",
         help="rewrite all URIs in sources.list to the specified url")
-    command.add_argument("--exclude", nargs='+',
+    command.add_argument("--exclude", nargs='*',
                          help="exclude the listed package names from the restore")
     command.set_defaults(command="restore")
     # restore on new distro
