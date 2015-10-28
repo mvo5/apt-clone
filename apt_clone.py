@@ -22,6 +22,7 @@ import apt
 from apt.cache import FetchFailedException
 import apt_pkg
 import difflib
+import fnmatch
 import glob
 import hashlib
 import logging
@@ -590,7 +591,12 @@ class AptClone(object):
                     if line.startswith("#") or line == "":
                         continue
                     (name, version, auto) = line.split()
-                    if name in exclude_pkgs:
+                    # tiny helper
+                    def is_excluded(name, exclude_pkgs):
+                        for excl in exclude_pkgs:
+                            if fnmatch.fnmatch(name, excl):
+                                return True
+                    if is_excluded(name, exclude_pkgs):
                         continue
                     pkgs.add(name)
                     auto_installed = int(auto)
