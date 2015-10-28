@@ -152,7 +152,7 @@ class TestClone(unittest.TestCase):
         clone = AptClone()
         supported = distro_info.UbuntuDistroInfo().supported()
 
-        missing = clone.simulate_restore_state("./data/apt-state.tar.gz", new_distro=supported[-1])
+        missing = clone.simulate_restore_state("./data/apt-state.tar.gz", new_distro=supported[-1], exclude_pkgs=[])
         # missing, because clone does not have universe enabled
         self.assertEqual(list(missing), ['accerciser'])
 
