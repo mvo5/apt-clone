@@ -1,10 +1,39 @@
-apt-clone (0.3.1~ubuntu12) UNRELEASED; urgency=medium
+apt-clone (0.4) unstable; urgency=medium
 
+  [ Michael Vogt ]
+  * sync from ubuntu
+  * add --exclude option to apt-clone restore
+
+  [ Brian Murray ]
+  * save packages with a foreign origin in a separate file
+
+ -- Michael Vogt <mvo@debian.org>  Thu, 05 Nov 2015 10:45:46 +0100
+
+apt-clone (0.3.1~ubuntu14) wily; urgency=medium
+
+  * No-change rebuild for python3.5 transition
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Wed, 22 Jul 2015 04:08:42 +0000
+
+apt-clone (0.3.1~ubuntu13) vivid; urgency=medium
+
+  * debian/control: updated Vcs-Bzr thanks to Launchpad user majun for the
+    patch and the bug report. (LP: #1388328)
+
+ -- Brian Murray <brian@ubuntu.com>  Tue, 13 Jan 2015 16:14:52 -0800
+
+apt-clone (0.3.1~ubuntu12) utopic; urgency=medium
+
+  [ Brian Murray ]
   * Add an option to replace the mirror used in /etc/apt/sources.list with one
     of your choosing. (LP: #1290584)
   * debian/tests/control: add in missing make dependency
 
- -- Brian Murray <brian@ubuntu.com>  Tue, 11 Mar 2014 08:39:45 -0700
+  [ Michael Vogt ]
+  * Resolve unicode decode error for sources.list files if locale is
+    unsupported. (LP: #1309447)
+
+ -- Brian Murray <brian@ubuntu.com>  Wed, 20 Aug 2014 13:54:48 -0700
 
 apt-clone (0.3.1~ubuntu11) trusty; urgency=medium
 
