@@ -140,7 +140,7 @@ class TestClone(unittest.TestCase):
         clone.restore_state(
             "./data/apt-state-ubuntu-lucid.tar.gz",
             targetdir,
-            "maverick")
+            new_distro="maverick")
         sources_list = os.path.join(targetdir, "etc","apt","sources.list")
         self.assertTrue(os.path.exists(sources_list))
         with open(sources_list) as fp:
