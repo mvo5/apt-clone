@@ -1,3 +1,11 @@
+apt-clone (0.4.1) UNRELEASED; urgency=medium
+
+  * show friendly error message when restore has no source file
+    (thanks to Tim Wasser)
+  * 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 06 Nov 2015 22:48:07 +0100
+
 apt-clone (0.4) unstable; urgency=medium
 
   [ Michael Vogt ]
