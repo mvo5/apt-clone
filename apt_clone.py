@@ -177,6 +177,8 @@ class AptClone(object):
         tar.add(f.name, arcname="./var/lib/apt-clone/uname")
 
     def _write_state_extra_files(self, extra_files, tar):
+        if extra_files is None:
+            return
         for p in extra_files:
             for f in glob.glob(p):
                 tar.add(f, arcname="./extra-files"+f)
