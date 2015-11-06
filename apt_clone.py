@@ -127,7 +127,7 @@ class AptClone(object):
     # save
     def save_state(self, sourcedir, target,
                    with_dpkg_repack=False, with_dpkg_status=False,
-                   scrub_sources=False):
+                   scrub_sources=False, extra_files=None):
         """ save the current system state (installed pacakges, enabled
             repositories ...) into the apt-state.tar.gz file in targetdir
         """
@@ -151,6 +151,7 @@ class AptClone(object):
             self._write_state_sources_list(tar, scrub_sources)
             self._write_state_apt_preferences(tar)
             self._write_state_apt_keyring(tar)
+            self._write_state_extra_files(extra_files, tar)
             if with_dpkg_status:
                 self._write_state_dpkg_status(tar)
             if with_dpkg_repack:
@@ -175,6 +176,11 @@ class AptClone(object):
         f.flush()
         tar.add(f.name, arcname="./var/lib/apt-clone/uname")
 
+    def _write_state_extra_files(self, extra_files, tar):
+        for p in extra_files:
+            for f in glob.glob(p):
+                tar.add(f, arcname="./extra-files"+f)
+                
     def _write_state_installed_pkgs(self, sourcedir, tar):
         cache = self._cache_cls(rootdir=sourcedir)
         s = ""
@@ -494,6 +500,8 @@ class AptClone(object):
         # FIXME: this needs to check if there are conflicts, e.g. via
         #        gdebi
         self._restore_not_downloadable_debs(statefile, targetdir)
+        # restore after package to avoid e.g. conffile prompts
+        self._restore_extra_files(statefile, targetdir)
 
         # and umount again
         if targetdir != "/":
@@ -646,6 +654,15 @@ class AptClone(object):
         self._restore_package_selection_in_cache(statefile, cache, protect_installed, exclude_pkgs)
         # do it
         cache.commit(self.fetch_progress, self.install_progress)
+
+    def _restore_extra_files(self, statefile, targetdir):
+        with tarfile.open(statefile) as tar:
+            for m in tar.getmembers():
+                prefix = self.TARPREFIX+"extra-files/"
+                if m.name.startswith(prefix):
+                    # strip prefix on extract
+                    m.name = m.name[len(prefix):]
+                    tar.extract(m, targetdir)
 
     def _restore_not_downloadable_debs(self, statefile, targetdir):
         with tarfile.open(statefile) as tar:

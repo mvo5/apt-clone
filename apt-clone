@@ -52,6 +52,8 @@ if __name__ == "__main__":
     command.add_argument("--with-dpkg-status",
                          action="store_true", default=False,
                          help="include full copy of dpkg-status file, mostly useful for debugging")
+    command.add_argument("--extra-files", nargs='*',
+                         help="include extra files (glob)")
     command.set_defaults(command="clone")
     # restore
     command = subparser.add_parser(
@@ -103,7 +105,8 @@ if __name__ == "__main__":
         print(info)
     if args.command == "clone":
         clone.save_state(args.source, args.destination,
-                         args.with_dpkg_repack, args.with_dpkg_status)
+                         args.with_dpkg_repack, args.with_dpkg_status,
+                         extra_files=args.extra_files)
         print("not installable: %s" % ", ".join(clone.not_downloadable))
         print("version mismatch: %s" % ", ".join(clone.version_mismatch))
         if not args.with_dpkg_repack:

@@ -2,7 +2,9 @@ apt-clone (0.4.1) UNRELEASED; urgency=medium
 
   * show friendly error message when restore has no source file
     (thanks to Tim Wasser)
-  * 
+  * add new 'apt-clone clone --extra-files "/some/path"' option
+    to store arbitrary number of extra files in an apt-clone
+    file (and restore them of course)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 06 Nov 2015 22:48:07 +0100
 
