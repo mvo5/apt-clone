@@ -2,3 +2,6 @@
 * add tests for restore_state
 * refactor restore_state into multiple functions
 * add proper commandline parser
+
+* add README with examples etc
+* add multi-arch support when reading/writing the cache
