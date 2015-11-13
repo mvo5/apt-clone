@@ -1,4 +1,4 @@
-apt-clone (0.4.1) UNRELEASED; urgency=medium
+apt-clone (0.4.1) unstable; urgency=medium
 
   * show friendly error message when restore has no source file
     (thanks to Tim Wasser)
@@ -6,7 +6,7 @@ apt-clone (0.4.1) UNRELEASED; urgency=medium
     to store arbitrary number of extra files in an apt-clone
     file (and restore them of course)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 06 Nov 2015 22:48:07 +0100
+ -- Michael Vogt <mvo@debian.org>  Fri, 06 Nov 2015 22:48:07 +0100
 
 apt-clone (0.4) unstable; urgency=medium
 
