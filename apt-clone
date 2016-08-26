@@ -111,7 +111,7 @@ if __name__ == "__main__":
         print("version mismatch: %s" % ", ".join(clone.version_mismatch))
         if not args.with_dpkg_repack:
             print("\nNote that you can use --with-dpkg-repack to include "
-                  "those packges in the clone file.")
+                  "those packages in the clone file.")
     elif args.command == "restore":
         if not os.path.exists(args.source):
             print("can not find source file '%s'" % args.source)
