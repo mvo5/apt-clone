@@ -141,8 +141,10 @@ if __name__ == "__main__":
 
         if args.simulate:
             miss = clone.simulate_restore_state(
-                args.source, args.new_distro_codename)
+                args.source, None, args.new_distro_codename)
             print("missing: %s" % ",".join(sorted(list(miss))))
         else:
             clone.restore_state(
-                args.source, args.destination, args.new_distro_codename, protect_installed)
+                args.source, args.destination,
+                new_distro=args.new_distro_codename,
+                protect_installed=protect_installed)
