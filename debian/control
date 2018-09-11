@@ -10,7 +10,6 @@ Build-Depends: debhelper (>= 7.0.50~),
 Standards-Version: 3.9.2
 Vcs-Git: https://github.com/mvo5/apt-clone
 Homepage: https://launchpad.net/apt-clone
-XS-Testsuite: autopkgtest
 
 Package: apt-clone
 Architecture: all
