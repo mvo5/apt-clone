@@ -1,6 +1,7 @@
 apt-clone (0.4.2) UNRELEASED; urgency=medium
 
   * Remove unnecessary XS-Testsuite field in debian/control.
+  * Cache distro metadata, speeding up the cloning immensely.
 
  -- Jelmer Vernooĳ <jelmer@debian.org>  Tue, 11 Sep 2018 00:01:56 +0100
 
