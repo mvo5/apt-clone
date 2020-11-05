@@ -40,7 +40,7 @@ class TestCloneUpgrade(unittest.TestCase):
             if arch in ['s390x'] and meta in ['ubuntu-desktop', 'kubuntu-desktop']:
                 continue
             logging.info("testing %s" % meta)
-            old = self._create_fake_upgradable_root(supported[-2], meta=meta)
+            old = self._create_fake_upgradable_root(supported[0], meta=meta)
             self.addCleanup(shutil.rmtree, old)
             # create statefile based on the old data
             with tarfile.open("lala.tar.gz", "w:gz") as state:
