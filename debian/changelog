@@ -3,7 +3,43 @@ apt-clone (0.4.2) UNRELEASED; urgency=medium
   * Remove unnecessary XS-Testsuite field in debian/control.
   * Cache distro metadata, speeding up the cloning immensely.
 
- -- Jelmer Vernooĳ <jelmer@debian.org>  Tue, 11 Sep 2018 00:01:56 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 05 Nov 2020 08:53:11 +0100
+
+apt-clone (0.4.1ubuntu5) groovy; urgency=medium
+
+  * apt-clone: update how we determine the codename of the release which we
+    are on. (LP: #1858326)
+
+ -- Brian Murray <brian@ubuntu.com>  Wed, 19 Aug 2020 14:26:05 -0700
+
+apt-clone (0.4.1ubuntu4) groovy; urgency=medium
+
+  * s/pyflakes/pyflakes3/ for tests
+  * Remove spurious python-apt test dep
+
+ -- Julian Andres Klode <juliank@ubuntu.com>  Tue, 02 Jun 2020 17:33:46 +0200
+
+apt-clone (0.4.1ubuntu3) focal; urgency=medium
+
+  * Build-Depend on dh-python (LP: #1870047)
+  * Only run tests on python3, there is no python-distro-info anymore.
+
+ -- Julian Andres Klode <juliank@ubuntu.com>  Wed, 01 Apr 2020 16:31:08 +0200
+
+apt-clone (0.4.1ubuntu2) yakkety; urgency=medium
+
+  * adt: Skip desktop upgrades that do not exist on s390x.
+  * adt: Copy archive keyrings into the chroots.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Mon, 05 Sep 2016 20:06:14 +0100
+
+apt-clone (0.4.1ubuntu1) xenial; urgency=medium
+
+  * apt-clone: pass named parameters on to the AptClone library, to make
+    sure we pass on the new distro name properly for upgrades from CD.
+    (LP: #1553870)
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Wed, 09 Mar 2016 16:30:19 -0500
 
 apt-clone (0.4.1) unstable; urgency=medium
 

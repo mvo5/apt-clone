@@ -36,6 +36,9 @@ class TestCloneUpgrade(unittest.TestCase):
         supported = distro_info.UbuntuDistroInfo().supported()
         for meta in ["ubuntu-standard", "ubuntu-desktop", "kubuntu-desktop",
                      "xubuntu-desktop"]:
+            arch = apt_pkg.config.find("APT::Architecture")
+            if arch in ['s390x'] and meta in ['ubuntu-desktop', 'kubuntu-desktop']:
+                continue
             logging.info("testing %s" % meta)
             old = self._create_fake_upgradable_root(supported[-2], meta=meta)
             self.addCleanup(shutil.rmtree, old)
@@ -79,6 +82,11 @@ class TestCloneUpgrade(unittest.TestCase):
         sources_list = os.path.join(tmpdir, "etc", "apt", "sources.list")
         if not os.path.exists(os.path.dirname(sources_list)):
             os.makedirs(os.path.dirname(sources_list))
+        keyring_src = os.path.join("/usr", "share", "keyrings", "ubuntu-archive-keyring.gpg")
+        trusted_d = os.path.join(tmpdir, "etc", "apt", "trusted.gpg.d")
+        if not os.path.exists(trusted_d):
+            os.makedirs(trusted_d)
+        shutil.copy(keyring_src, trusted_d)
         arch = apt_pkg.config.find("APT::Architecture")
         if arch in ['i386', 'amd64']:
             server = 'archive.ubuntu.com/ubuntu'

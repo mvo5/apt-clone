@@ -5,9 +5,9 @@ test:
 	if find \! -user $$USER | grep -q .; then \
 		sudo chown -R $$USER:$$USER .; \
 	fi
-	pyflakes ../apt-clone ../apt_clone.py
+	pyflakes3 ../apt-clone ../apt_clone.py
 	set -e; for f in *.py; do \
-		for ver in python3 python; do \
+		for ver in python3; do \
 			PYTHONPATH=.. $$ver $$f -v 2>&1; \
 		done; \
 	done; \
