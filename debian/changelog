@@ -1,3 +1,9 @@
+apt-clone (0.4.3) unstable; urgency=medium
+
+  * debian: update test dependencies
+
+ -- Michael Vogt <mvo@debian.org>  Fri, 06 Nov 2020 08:17:14 +0100
+
 apt-clone (0.4.2) unstable; urgency=medium
 
   [ Jelmer Vernooĳ ]
