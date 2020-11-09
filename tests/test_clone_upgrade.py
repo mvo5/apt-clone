@@ -20,6 +20,11 @@ from apt_clone import AptClone
 
 class TestCloneUpgrade(unittest.TestCase):
 
+    def setUp(self):
+        arch = apt_pkg.config.find("APT::Architecture")
+        if arch in ["i386"]:
+            self.skipTest("architecutre no longer fully supported in ubuntu")
+
     @unittest.skip("need to update apt-clone-state-ubuntu.tar.gz first")
     def test_clone_upgrade_regression(self):
         """ regression test against known installs """
