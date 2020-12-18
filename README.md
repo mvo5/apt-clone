@@ -35,7 +35,7 @@ So be careful!
 `
 $ sudo apt-clone restore ~/myhost.apt-clone.tar.gz
 `
-Note that you can give the option `--destination /some/dir` and it wil debootstrap the clone into this directory.
+Note that you can give the option `--destination /some/dir` and it will debootstrap the clone into this directory.
 
 [travis-image]: https://travis-ci.org/mvo5/apt-clone.svg?branch=master
 [travis-url]: https://travis-ci.org/mvo5/apt-clone
