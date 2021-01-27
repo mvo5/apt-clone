@@ -1,2 +1,2 @@
 Tests: run-tests
-Depends: @, pyflakes3, python3-apt, pycodestyle, python3-mock, python3-distro-info, make, ubuntu-archive-keyring
+Depends: @, pyflakes3, python3-apt, pycodestyle, python3-mock, python3-distro-info, make, ubuntu-keyring
