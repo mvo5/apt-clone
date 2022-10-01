@@ -26,7 +26,10 @@ import fnmatch
 import glob
 import hashlib
 import logging
-import lsb_release
+try:
+    import lsb_release
+except ImportError:
+    lsb_release = None
 import os
 import re
 import shutil
@@ -71,8 +74,10 @@ class LowLevelCommands(object):
         return (ret == 0)
 
     def debootstrap(self, targetdir, distro=None):
-        if distro is None:
+        if distro is None and lsb_release:
             distro = lsb_release.get_distro_information()['CODENAME']
+        if distro is None:
+            distro = subprocess.getoutput("lsb_release --codename --short")
         ret = subprocess.call(["debootstrap", distro, targetdir])
         return (ret == 0)
 
@@ -187,7 +192,10 @@ class AptClone(object):
         cache = self._cache_cls(rootdir=sourcedir)
         s = ""
         foreign = ""
-        distro_id = lsb_release.get_distro_information()['ID']
+        if lsb_release:
+            distro_id = lsb_release.get_distro_information()['ID']
+        else:
+            distro_id = subprocess.getoutput("lsb_release --id --short")
         for pkg in cache:
             if pkg.is_installed:
                 # a version identifies the pacakge
